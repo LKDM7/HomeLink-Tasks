@@ -1,4 +1,4 @@
-# HomeLink Tasks 0.1.0
+# HomeLink Tasks 0.2.0
 
 Tableaux collaboratifs, carte mentale, vraies recettes, suivi de fabrication et HUD
 épinglé pour une base HomeLink.
@@ -34,7 +34,7 @@ Configurer `JAVA_HOME` vers un JDK 21, puis :
 Le JAR est écrit dans `build/libs/`.
 
 Le build utilise les sources adjacentes de `../HomeCore` quand elles sont présentes et à la
-bonne version ; sinon (ou avec `-PuseLocalDependencies=false`) il résout HomeCore 1.12.0
+bonne version ; sinon (ou avec `-PuseLocalDependencies=false`) il résout HomeCore 1.13.0
 publié sur GitHub Packages. Les contrats consommés, y compris `ProductionStart`, font partie
 de HomeCore 1.12.0 publié. Le Maven local n'est pas nécessaire.
 
@@ -239,9 +239,9 @@ Il reste une estimation, sans réservation de stock.
 
 | Mod | Version | Nécessité |
 |---|---|---|
-| HomeCore | 1.12.0 (API 1.8.0) | obligatoire |
-| HomeLink Storage | 1.2.0 (avec HomeLink Energy 0.4.1) | facultatif — sans lui, le calcul porte sur l'inventaire seulement |
-| JEI / REI | — | facultatif, simples raccourcis ; recettes, suivi et couleurs fonctionnent sans eux |
+| HomeCore | 1.13.0 (API 1.8.0) | obligatoire |
+| HomeLink Storage | 1.3.0 (avec HomeLink Energy 0.5.0) | facultatif — sans lui, le calcul porte sur l'inventaire seulement |
+| JEI 19+ / REI 16+ | — | facultatif : page d'information de l'écran ; recettes, suivi et couleurs fonctionnent sans eux |
 
 HomeCore 1.12.0 ajoute trois contrats publics neutres que ce mod consomme et ne
 réimplémente pas : lecture de stock autorisée, description publique des recettes et reçus

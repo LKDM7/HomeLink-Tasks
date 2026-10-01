@@ -199,5 +199,6 @@
   "screen.homelink_tasks.connect_screen": "Connecter l’écran",
   "screen.homelink_tasks.disconnect_screen": "Déconnecter l’écran",
   "screen.homelink_tasks.unbound_screen": "Écran non connecté",
-  "screen.homelink_tasks.no_network": "Aucun réseau disponible"
+  "screen.homelink_tasks.no_network": "Aucun réseau disponible",
+  "info.homelink_tasks.task_display": "Écran mural d'un tableau de tâches partagé. Posé comme un tableau, il prend le plus grand format qui tient (2×2, 2×1 ou 1×1) ; Maj pendant la pose force le 1×1. Clic droit pour ouvrir le projet sélectionné.\nLes tâches de fabrication n'avancent qu'avec des objets réellement fabriqués, chaque lot compté une fois ; posséder un objet ou poser un bloc ne termine rien. Les couleurs des ingrédients indiquent ce qui vient de votre inventaire, d'un HomeLink Storage autorisé, ce qui manque ou ce qui ne peut pas être vérifié.\nLe rattacher à un HomeNetwork avec le HomeLink Connector. Le casser ne supprime jamais de tableau, de carte ni de permission."
 }

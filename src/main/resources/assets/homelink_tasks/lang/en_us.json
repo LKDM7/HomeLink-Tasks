@@ -199,5 +199,6 @@
   "screen.homelink_tasks.connect_screen": "Connect screen",
   "screen.homelink_tasks.disconnect_screen": "Disconnect screen",
   "screen.homelink_tasks.unbound_screen": "Screen not connected",
-  "screen.homelink_tasks.no_network": "No network available"
+  "screen.homelink_tasks.no_network": "No network available",
+  "info.homelink_tasks.task_display": "Wall screen for a shared task board. Placed like a painting, it takes the largest format that fits (2×2, 2×1 or 1×1); hold Shift while placing for 1×1. Right-click to open the selected project.\nCraft tasks progress only from items really made, credited once per batch; owning an item or placing a block completes nothing. Ingredient colours show what you can make from your inventory, from authorised HomeLink Storage, what is missing, or what cannot be checked.\nAttach it to a HomeNetwork with the HomeLink Connector. Breaking it never deletes a board, card or permission."
 }
