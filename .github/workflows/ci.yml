@@ -24,19 +24,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: LKDM7/HomeCore
-          ref: c30d4122c7850ff8856f4bd03a058d21685ed6d6
+          ref: 1eed60294d8bb4419ed26757acfd4444b6380b01
           path: HomeCore
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
           repository: LKDM7/HomeLink-Storage
-          ref: e41dcd3cf2a66dac85b6b541ee78a72c1dd62156
+          ref: 9ea1eaa183adbfa3b8141dde749f3831d77ac7e4
           path: HomeLink Storage
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
           repository: LKDM7/HomeLink-Energy
-          ref: 79b16de92c5d901846e19df241a5710879495811
+          ref: c214caf17e2f4a9fcd905d88f7de94592ad28ece
           path: HomeLinkEnergy
           persist-credentials: false
       - uses: actions/setup-java@v4
