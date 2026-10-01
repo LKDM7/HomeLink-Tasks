@@ -1,0 +1,363 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'idea'
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+
+version = mod_version
+group = mod_group_id
+base { archivesName = mod_id }
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+repositories {
+    // Released HomeCore artifacts. Credentials come from Gradle properties or the CI
+    // environment; none are stored in this repository.
+    maven {
+        name = 'HomeCorePackages'
+        url = uri('https://maven.pkg.github.com/LKDM7/HomeCore')
+        credentials {
+            username = providers.gradleProperty('githubUser').orElse(providers.environmentVariable('GITHUB_ACTOR')).getOrElse('')
+            password = providers.gradleProperty('githubToken').orElse(providers.environmentVariable('HOMELINK_PACKAGES_TOKEN')).orElse(providers.environmentVariable('GITHUB_TOKEN')).getOrElse('')
+        }
+        content { includeGroup 'fr.lkdm.homecore' }
+    }
+    mavenCentral()
+}
+
+dependencies {
+    // The only required dependency: device, network, permission, recipe description,
+    // production receipt and stock reading contracts.
+    implementation "fr.lkdm.homecore:homecore:${homecore_version}"
+
+    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+
+// Development-only runtime verification. Compiled for game test runs and never shipped.
+sourceSets {
+    verification {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+def benchmarkBaseline = tasks.register('generateBenchmarkBaseline') {
+    def baseline = layout.projectDirectory.file('integration/benchmark-baseline/IngredientAvailabilityPlanner.java.txt')
+    def output = layout.buildDirectory.dir('generated/benchmark-baseline')
+    inputs.file(baseline)
+    outputs.dir(output)
+    doLast {
+        def previous = new File(output.get().asFile, 'fr/lkdm/homelink/tasks/stock/BaselineAvailabilityPlanner.java')
+        if (previous.isFile()) previous.delete()
+        def target = new File(output.get().asFile, 'fr/lkdm/homelink/tasks/verification/baseline/BaselineAvailabilityPlanner.java')
+        target.parentFile.mkdirs()
+        target.setText(baseline.asFile.getText('UTF-8').replace('IngredientAvailabilityPlanner', 'BaselineAvailabilityPlanner')
+                .replace('package fr.lkdm.homelink.tasks.stock;', '''package fr.lkdm.homelink.tasks.verification.baseline;
+import fr.lkdm.homelink.tasks.stock.AvailabilityPlan;
+import fr.lkdm.homelink.tasks.stock.AvailabilityState;
+import fr.lkdm.homelink.tasks.stock.IngredientAvailability;
+import fr.lkdm.homelink.tasks.stock.StockContext;'''), 'UTF-8')
+    }
+}
+sourceSets.verification.java.srcDir(layout.buildDirectory.dir('generated/benchmark-baseline'))
+tasks.named('compileVerificationJava') { dependsOn benchmarkBaseline }
+configurations {
+    verificationImplementation.extendsFrom implementation
+    verificationRuntimeOnly.extendsFrom runtimeOnly
+    verificationCompileOnly.extendsFrom compileOnly
+}
+if (providers.gradleProperty('withStorage').isPresent()) {
+    sourceSets.verification.java.srcDir('src/storageVerification/java')
+    dependencies {
+        verificationImplementation 'fr.lkdm.homelink.storage:homelink_storage:1.2.0'
+        runtimeOnly 'fr.lkdm.homelink.storage:homelink_storage:1.2.0'
+    }
+}
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+    options.compilerArgs.addAll(['-Xlint:deprecation', '-Xlint:removal', '-Xlint:unchecked', '-Werror'])
+}
+
+tasks.withType(Javadoc).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+neoForge {
+    version = project.neo_version
+    addModdingDependenciesTo sourceSets.verification
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    runs {
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+        inGame {
+            client()
+            gameDirectory = file('build/validation/in-game')
+            systemProperty 'tasks.inGame', 'true'
+            systemProperty 'tasks.guiReview', providers.gradleProperty('guiReview').isPresent().toString()
+            systemProperty 'tasks.exchange', file('build/validation/client-exchange/' + providers.gradleProperty('validationSession').getOrElse('manual')).absolutePath.replace('\\', '/')
+            programArguments.addAll '--username', 'TasksAlice', '--width', '1280', '--height', '720'
+        }
+        userReview {
+            client()
+            gameDirectory = file('build/validation/user-review')
+            systemProperty 'tasks.inGame', 'true'
+            systemProperty 'tasks.userReview', 'true'
+            systemProperty 'tasks.exchange', file('build/validation/user-review/exchange').absolutePath
+            programArguments.addAll '--username', 'Dev', '--width', '1280', '--height', '720'
+        }
+        inGameGuest {
+            client()
+            gameDirectory = file('build/validation/in-game-guest')
+            systemProperty 'tasks.inGameGuest', 'true'
+            systemProperty 'tasks.exchange', file('build/validation/client-exchange/' + providers.gradleProperty('validationSession').getOrElse('manual')).absolutePath.replace('\\', '/')
+            programArguments.addAll '--username', 'TasksBob', '--width', '960', '--height', '720'
+        }
+        server {
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+        // Runs the real server and the development-only checks against it, then exits.
+        gameTestServer {
+            type = 'gameTestServer'
+            gameDirectory = file(providers.gradleProperty('persistencePass').isPresent() ? 'build/validation/persistence' : 'build/validation/gametest')
+            systemProperty 'tasks.persistencePass', providers.gradleProperty('persistencePass').getOrElse('')
+            systemProperty 'tasks.sourceRoot', rootDir.absolutePath
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'homelink_tasks_validation'
+        }
+        data {
+            data()
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output',
+                    file('src/generated/resources/').getAbsolutePath(),
+                    '--existing', file('src/main/resources/').getAbsolutePath()
+        }
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.INFO
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+        homelink_tasks_validation {
+            sourceSet(sourceSets.verification)
+        }
+    }
+
+    // Assigned after the mods block, which is where those models become resolvable.
+    runs.gameTestServer.loadedMods = [mods."${mod_id}", mods.homelink_tasks_validation]
+    runs.inGame.loadedMods = [mods."${mod_id}", mods.homelink_tasks_validation]
+    runs.userReview.loadedMods = [mods."${mod_id}", mods.homelink_tasks_validation]
+    runs.inGameGuest.loadedMods = [mods."${mod_id}", mods.homelink_tasks_validation]
+    // A normal client and server run carry the mod alone, never the development checks.
+    runs.client.loadedMods = [mods."${mod_id}"]
+    runs.server.loadedMods = [mods."${mod_id}"]
+
+    unitTest {
+        enable()
+        testedMod = mods."${mod_id}"
+        loadedMods = [mods."${mod_id}"]
+    }
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+test {
+    useJUnitPlatform()
+    testLogging { events 'failed' }
+}
+
+var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    var replaceProperties = [minecraft_version      : minecraft_version,
+                             minecraft_version_range: minecraft_version_range,
+                             neo_version            : neo_version,
+                             neo_version_range      : neo_version_range,
+                             loader_version_range   : loader_version_range,
+                             homecore_version_range : homecore_version_range,
+                             mod_id                 : mod_id,
+                             mod_name               : mod_name,
+                             mod_license            : mod_license,
+                             mod_version            : mod_version,
+                             mod_authors            : mod_authors,
+                             mod_description        : mod_description]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from 'src/main/templates'
+    into 'build/generated/sources/modMetadata'
+}
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven { url = uri(layout.buildDirectory.dir('repo')) }
+    }
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
+
+// Checks that the distributable JAR carries the mod and nothing else.
+def releaseVersion = providers.gradleProperty("mod_version").get()
+def releaseJarFile = tasks.named("jar", Jar).flatMap { it.archiveFile }
+def verifyReleaseJar = tasks.register('verifyReleaseJar') {
+    group = 'verification'
+    inputs.property("releaseVersion", releaseVersion)
+    description = 'Checks release identity and exclusion of development/test code.'
+    dependsOn tasks.named('jar')
+    inputs.file(releaseJarFile)
+    doLast {
+        def archive = new java.util.zip.ZipFile(releaseJarFile.get().asFile)
+        try {
+            def names = archive.entries().collect { it.name }
+            def forbidden = ['fr/lkdm/homelink/tasks/verification/', 'org/junit/', 'fr/lkdm/homecore/']
+            def leaked = names.findAll { name -> forbidden.any { prefix -> name.startsWith(prefix) } }
+            if (!leaked.isEmpty()) {
+                throw new GradleException("Development, test or HomeCore classes found in release JAR: ${leaked.take(5)}")
+            }
+            def required = ['fr/lkdm/homelink/tasks/HomeLinkTasks.class',
+                            'fr/lkdm/homelink/tasks/block/TaskDisplayBlock.class',
+                            'fr/lkdm/homelink/tasks/block/TaskDisplayDevice.class',
+                            'fr/lkdm/homelink/tasks/stock/IngredientAvailabilityPlanner.class',
+                            'fr/lkdm/homelink/tasks/production/CraftTracker.class',
+                            'assets/homelink_tasks/blockstates/task_display.json',
+                            'assets/homelink_tasks/models/block/task_display.json',
+                            'assets/homelink_tasks/models/item/task_display.json',
+                            'assets/homelink_tasks/textures/block/task_display_front.png',
+                            'assets/homelink_tasks/lang/en_us.json',
+                            'assets/homelink_tasks/lang/fr_fr.json',
+                            'data/homelink_tasks/recipe/task_display.json',
+                            'data/homelink_tasks/loot_table/blocks/task_display.json',
+                            'META-INF/neoforge.mods.toml']
+            for (def display : ['task_display', 'task_display_medium', 'task_display_large']) {
+                required.addAll(["assets/homelink_tasks/blockstates/${display}.json",
+                                 "assets/homelink_tasks/models/block/${display}.json",
+                                 "assets/homelink_tasks/models/item/${display}.json",
+                                 
+                                 "data/homelink_tasks/loot_table/blocks/${display}.json"])
+            }
+            for (def texture : ['display_frame', 'display_steel', 'display_mount', 'display_glass', 'display_copper']) {
+                required.add("assets/homelink_tasks/textures/block/${texture}.png")
+            }
+            for (def entry : required) {
+                if (!names.contains(entry.toString())) throw new GradleException("Missing release entry: ${entry}")
+            }
+            def parser = new groovy.json.JsonSlurper()
+            def json = { path -> parser.parseText(archive.getInputStream(archive.getEntry(path)).getText('UTF-8')) }
+            for (def path : names.findAll { it.endsWith('.json') }) json(path)
+            def widths = []
+            for (def display : ['task_display', 'task_display_medium', 'task_display_large']) {
+                def model = json("assets/homelink_tasks/models/block/${display}.json")
+                for (def face : model.elements.collectMany { it.faces.values() }) {
+                    if (face.texture.startsWith('#') && !model.textures.containsKey(face.texture.substring(1)))
+                        throw new GradleException("Unresolved display texture: ${face.texture}")
+                }
+                for (def element : model.elements) {
+                    for (int axis = 0; axis < 3; axis++) {
+                        if (element.from[axis] < -16 || element.to[axis] > 32 || element.from[axis] >= element.to[axis])
+                            throw new GradleException("Invalid element bounds in ${display}")
+                    }
+                }
+                widths.add(model.elements.collect { it.to[0] }.max() - model.elements.collect { it.from[0] }.min())
+                def states = json("assets/homelink_tasks/blockstates/${display}.json")
+                if (states.variants.size() != 48)
+                    throw new GradleException("Missing display states in ${display}")
+                for (def variant : states.variants.values()) {
+                    def path = 'assets/homelink_tasks/models/' + variant.model.split(':')[1] + '.json'
+                    if (!names.contains(path)) throw new GradleException("Missing part model: ${path}")
+                    def partModel = json(path)
+                    for (def face : partModel.elements.collectMany { it.faces.values() })
+                        if (face.texture.startsWith('#') && !partModel.textures.containsKey(face.texture.substring(1)))
+                            throw new GradleException("Missing part texture: ${path}/${face.texture}")
+                }
+                def loot = json("data/homelink_tasks/loot_table/blocks/${display}.json")
+                if (loot.pools.size() != 1 || loot.pools[0].rolls != 1 || loot.pools[0].entries.size() != 1
+                        || loot.pools[0].entries[0].name != "homelink_tasks:task_display")
+                    throw new GradleException("Display must drop exactly its own item: ${display}")
+                def recipe = json("data/homelink_tasks/recipe/task_display.json")
+                if (recipe.result.id != "homelink_tasks:task_display" || recipe.result.count != 1)
+                    throw new GradleException("Wrong recipe output for ${display}")
+            }
+            if (widths.any { it != 16 }) throw new GradleException('All displays must use the Dashboard dimensions')
+            if (names.any { it == 'data/homelink_tasks/recipe/task_display_medium.json' || it == 'data/homelink_tasks/recipe/task_display_large.json' })
+                throw new GradleException('Only the standard display may be craftable')
+            def english = json('assets/homelink_tasks/lang/en_us.json'), french = json('assets/homelink_tasks/lang/fr_fr.json')
+            if (english.keySet() != french.keySet() || !english.containsKey('screen.homelink_tasks.no_assignees'))
+                throw new GradleException('Incomplete localization')
+            for (def priority : ['low', 'normal', 'high', 'urgent']) {
+                if (!english.containsKey("priority.homelink_tasks.${priority}".toString()))
+                    throw new GradleException("Missing priority translation: ${priority}")
+            }
+            if (french.values().any { it.contains('\u00c3') || it.contains('\u00c2') || it.contains('\uFFFD') })
+                throw new GradleException('Corrupted French UTF-8 translation')
+            def metadata = archive.getInputStream(archive.getEntry('META-INF/neoforge.mods.toml')).text
+            if (!metadata.contains('modId="homelink_tasks"') || !metadata.contains("version=\"${releaseVersion}\"")) {
+                throw new GradleException('Release metadata does not match mod_id and mod_version.')
+            }
+            if (!metadata.contains('modId="homecore"')) {
+                throw new GradleException('Release metadata must declare the required HomeCore dependency.')
+            }
+        } finally {
+            archive.close()
+        }
+        logger.lifecycle('Release JAR verified: {}', releaseJarFile.get().asFile.name)
+    }
+}
+tasks.named('check') { dependsOn verifyReleaseJar }
+
+def inGameDir = layout.buildDirectory.dir('validation/in-game')
+tasks.named('runInGame') {
+    doFirst {
+        def options = new File(inGameDir.get().asFile, 'options.txt')
+        options.parentFile.mkdirs()
+        options.setText('onboardAccessibility:false\npauseOnLostFocus:false\nrenderDistance:2\nsimulationDistance:5\nmaxFps:60\ntutorialStep:none\nguiScale:2\nsoundCategory_music:0.0\nlang:fr_fr\n', 'UTF-8')
+    }
+    doLast {
+        def report = new File(inGameDir.get().asFile, 'logs/latest.log').getText('UTF-8')
+        if (!report.contains('TASKS_IN_GAME_OK') || report.contains('TASKS_IN_GAME_FAILED'))
+            throw new GradleException('In-game verification failed; inspect in-game/logs/latest.log')
+    }
+}
+
+def inGameGuestDir = layout.buildDirectory.dir('validation/in-game-guest')
+tasks.named('runInGameGuest') {
+    doFirst {
+        def options = new File(inGameGuestDir.get().asFile, 'options.txt')
+        options.parentFile.mkdirs()
+        options.setText('onboardAccessibility:false\npauseOnLostFocus:false\nrenderDistance:2\nsimulationDistance:5\nmaxFps:60\ntutorialStep:none\nguiScale:2\nsoundCategory_music:0.0\nlang:en_us\n', 'UTF-8')
+    }
+    doLast {
+        def report = new File(inGameGuestDir.get().asFile, 'logs/latest.log').getText('UTF-8')
+        if (!report.contains('TASKS_GUEST_OK') || report.contains('TASKS_IN_GAME_FAILED'))
+            throw new GradleException('Guest verification failed; inspect in-game-guest/logs/latest.log')
+    }
+}
+
+// The user-review run opens only a separately copied save under build/validation.
+tasks.named('runUserReview') {
+    doLast {
+        def report = file('build/validation/user-review/logs/latest.log').getText('UTF-8')
+        if (!report.contains('TASKS_IN_GAME_OK') || report.contains('TASKS_IN_GAME_FAILED'))
+            throw new GradleException('User-world verification failed; inspect user-review/logs/latest.log')
+    }
+}

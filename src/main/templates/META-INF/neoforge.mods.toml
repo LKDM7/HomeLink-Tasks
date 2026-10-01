@@ -1,0 +1,41 @@
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+authors="${mod_authors}"
+description='''${mod_description}'''
+
+[[dependencies.${mod_id}]]
+modId="neoforge"
+type="required"
+versionRange="${neo_version_range}"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="minecraft"
+type="required"
+versionRange="${minecraft_version_range}"
+ordering="NONE"
+side="BOTH"
+
+# HomeCore owns the device, network, permission, recipe description, production receipt
+# and stock reading contracts this mod consumes. Nothing here reimplements them.
+[[dependencies.${mod_id}]]
+modId="homecore"
+type="required"
+versionRange="${homecore_version_range}"
+ordering="AFTER"
+side="BOTH"
+
+# Storage is optional: without it a board falls back to the viewing player's own inventory.
+[[dependencies.${mod_id}]]
+modId="homelink_storage"
+type="optional"
+versionRange="[1.1.1,2.0.0)"
+ordering="AFTER"
+side="BOTH"

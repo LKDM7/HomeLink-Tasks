@@ -1,0 +1,8 @@
+{
+    "replace":  false,
+    "values":  [
+                   "homelink_tasks:task_display",
+                   "homelink_tasks:task_display_medium",
+                   "homelink_tasks:task_display_large"
+               ]
+}

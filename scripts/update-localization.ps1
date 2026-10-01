@@ -1,0 +1,77 @@
+$ErrorActionPreference = 'Stop'
+$taskRoot = Split-Path -Parent $PSScriptRoot
+$labels = @(
+    @('block.homelink_tasks.task_display','Small Task Display','Écran de tâches compact'),
+    @('block.homelink_tasks.task_display_medium','Medium Task Display','Écran de tâches moyen'),
+    @('block.homelink_tasks.task_display_large','Large Task Display','Grand écran de tâches'),
+    @('display.homelink_tasks.private','Protected task display','Écran de tâches protégé'),
+    @('display.homelink_tasks.open','Right-click to open','Clic droit pour ouvrir'),
+    @('display.homelink_tasks.live','LIVE / SERVER','DIRECT / SERVEUR'),
+    @('screen.homelink_tasks.manage','Manage','Gestion'),
+    @('screen.homelink_tasks.show_display','Show on screen','Afficher ici'),
+    @('screen.homelink_tasks.members','Board members / known server players','Membres / joueurs connus du serveur'),
+    @('screen.homelink_tasks.description','Description','Description'),
+    @('screen.homelink_tasks.save_title','Rename','Renommer'),
+    @('screen.homelink_tasks.save_description','Save','Enregistrer'),
+    @('screen.homelink_tasks.previous','<','<'),
+    @('screen.homelink_tasks.next','>','>'),
+    @('screen.homelink_tasks.member_role','Change role','Changer rôle'),
+    @('screen.homelink_tasks.invite','Invite / set role','Inviter / rôle'),
+    @('screen.homelink_tasks.remove_member','Remove member','Retirer membre'),
+    @('screen.homelink_tasks.transfer_owner','Transfer ownership','Transférer propriétaire'),
+    @('screen.homelink_tasks.reopen_board','Reopen board','Rouvrir tableau'),
+    @('screen.homelink_tasks.archive_board','Archive board','Archiver tableau'),
+    @('screen.homelink_tasks.delete_board','Delete board','Supprimer tableau'),
+    @('screen.homelink_tasks.confirm_action','Confirm this change?','Confirmer ce changement ?'),
+    @('screen.homelink_tasks.known_player','Known player','Joueur connu'),
+    @('screen.homelink_tasks.recipe_panel','Recipe & materials','Recette et matériaux'),
+    @('screen.homelink_tasks.recipe_missing','Recipe missing or unsupported','Recette absente ou non prise en charge'),
+    @('screen.homelink_tasks.expand_recipe','Expand recipe','Développer recette'),
+    @('screen.homelink_tasks.expand_confirm','Create a new zero-progress component objective? Stock never credits it.','Créer un objectif de composant à zéro ? Le stock ne le valide jamais.'),
+    @('screen.homelink_tasks.material_notes','Raw materials remain ingredients. No collection objectives are created.','Les matières restent des ingrédients. Aucun objectif de collecte créé.'),
+    @('screen.homelink_tasks.surplus','%s produced / %s surplus','%s produits / %s en surplus'),
+    @('screen.homelink_tasks.edit_card','Edit','Modifier'),
+    @('screen.homelink_tasks.assign','Assign','Assigner'),
+    @('screen.homelink_tasks.unassign','Unassign','Désassigner'),
+    @('screen.homelink_tasks.claim','I will take it','Je m''en occupe'),
+    @('screen.homelink_tasks.archive_card','Archive card','Archiver carte'),
+    @('screen.homelink_tasks.delete_card','Delete card','Supprimer carte'),
+    @('screen.homelink_tasks.link_card','Relationships','Relations'),
+    @('screen.homelink_tasks.parent_link','Set parent','Définir parent'),
+    @('screen.homelink_tasks.dependency_link','Add dependency','Ajouter dépendance'),
+    @('screen.homelink_tasks.unlink_parent','Clear parent','Retirer parent'),
+    @('screen.homelink_tasks.unlink_dependency','Remove dependency','Retirer dépendance'),
+    @('screen.homelink_tasks.recipe_lock','Lock recipe','Verrou recette'),
+    @('screen.homelink_tasks.recipe_locked','Selected recipe only','Recette choisie uniquement'),
+    @('screen.homelink_tasks.reorder_up','Move up','Monter'),
+    @('screen.homelink_tasks.reorder_down','Move down','Descendre'),
+    @('screen.homelink_tasks.project_materials','Project materials','Matériaux du projet'),
+    @('screen.homelink_tasks.project_plan_limits','Shared plan uses selected child recipes; no optimal plan is assumed.','Plan commun selon les recettes choisies ; aucun optimum supposé.'),
+    @('screen.homelink_tasks.finished_notice','Task finished: %s','Tâche terminée : %s'),
+    @('screen.homelink_tasks.priority','Priority','Priorité'),
+    @('screen.homelink_tasks.project_plan_hint','Selected recipe frontier. Derived components replace parent materials.','Recettes choisies : les composants développés remplacent les matériaux parents.'),
+    @('screen.homelink_tasks.project_plan_partial','Plan incomplete / limit reached','Plan incomplet / limite atteinte'),
+    @('screen.homelink_tasks.sources','%s inventory + %s Storage / %s','%s inventaire + %s Storage / %s'),
+    @('screen.homelink_tasks.ingredient_unknown','Unknown stock: %s unverified','Stock inconnu : %s non vérifiés'),
+    @('screen.homelink_tasks.ingredient_missing','Missing: %s','Manque : %s'),
+    @('screen.homelink_tasks.read_only','In Storage — retrieval restricted','Dans Storage — récupération restreinte'),
+    @('screen.homelink_tasks.reusable_hint','Reusable tools and returned containers: conservative estimate','Outils réutilisables et contenants rendus : estimation conservatrice'),
+    @('screen.homelink_tasks.craft_settings','Craft objective','Objectif de fabrication'),
+    @('screen.homelink_tasks.save_quantity','Save','Enregistrer'),
+    @('screen.homelink_tasks.create_component','Create component at zero','Créer le composant à zéro'),
+    @('screen.homelink_tasks.no_component_recipe','No supported component recipe','Aucune recette de composant prise en charge'),
+    @('screen.homelink_tasks.component_choices_partial','First 128 component recipes shown','128 premières recettes de composants affichées'),
+    @('screen.homelink_tasks.no_assignees','Nobody assigned: no production will count.','Personne assignée : aucune production ne sera comptée.'),
+    @('screen.homelink_tasks.recipe_any','Any compatible supported recipe','Toute recette prise en charge compatible'),
+    @('screen.homelink_tasks.recipe_tracking_hint','The selected recipe plans materials. Tracking accepts the same result and components, unless the recipe is locked.','La recette choisie sert au plan. Le suivi accepte le même résultat et ses composants, sauf verrouillage de recette.'),
+    @('screen.homelink_tasks.untrack','Stop tracking','Arrêter le suivi')
+)
+foreach ($language in @(@('en_us',1),@('fr_fr',2))) {
+    $path = Join-Path $taskRoot ('src/main/resources/assets/homelink_tasks/lang/' + $language[0] + '.json')
+    $existing = [IO.File]::ReadAllText($path) | ConvertFrom-Json
+    $values = [ordered]@{}
+    foreach ($property in $existing.PSObject.Properties) { $values[$property.Name] = $property.Value }
+    foreach ($entry in $labels) { $values[$entry[0]] = $entry[$language[1]] }
+    [IO.File]::WriteAllText($path, ($values | ConvertTo-Json -Depth 5) + "`n", [Text.UTF8Encoding]::new($false))
+}
+Write-Output 'French and English labels updated.'

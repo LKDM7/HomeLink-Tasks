@@ -1,0 +1,34 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven { url = 'https://maven.neoforged.net/releases' }
+    }
+}
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
+}
+rootProject.name = 'HomeLink-Tasks'
+if (providers.gradleProperty('withStorage').isPresent()) {
+    includeBuild(file(providers.gradleProperty('storage_dir').getOrElse('../HomeLink Storage'))) {
+        dependencySubstitution { substitute module('fr.lkdm.homelink.storage:homelink_storage') using project(':') }
+    }
+}
+
+// Adjacent sources are optional; -PuseLocalDependencies=false resolves published versions.
+
+if (providers.gradleProperty('useLocalDependencies').getOrElse('true').toBoolean()) {
+    def localDir = file(providers.gradleProperty('homecore_dir').getOrElse('../HomeCore'))
+    if (new File(localDir, 'settings.gradle').isFile()) {
+        def localProperties = new Properties()
+        new File(localDir, 'gradle.properties').withInputStream { localProperties.load(it) }
+        def expected = providers.gradleProperty('homecore_version').get()
+        if (localProperties.getProperty('mod_version') != expected || localProperties.getProperty('minecraft_version') != '1.21.1') {
+            throw new GradleException("HomeCore checkout must target Minecraft 1.21.1 and version ${expected}.")
+        }
+        includeBuild(localDir) {
+            dependencySubstitution { substitute module('fr.lkdm.homecore:homecore') using project(':') }
+        }
+    } else if (providers.gradleProperty('homecore_dir').isPresent()) {
+        throw new GradleException('Explicit homecore_dir does not contain a Gradle project.')
+    }
+}

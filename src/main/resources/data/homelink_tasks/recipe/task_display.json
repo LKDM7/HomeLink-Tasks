@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "homelink_tasks",
+  "pattern": [
+    "IGI",
+    "BMC",
+    "IRI"
+  ],
+  "key": {
+    "I": { "item": "minecraft:iron_ingot" },
+    "G": { "item": "minecraft:glass" },
+    "B": { "item": "homecore:homelink_circuit_board" },
+    "M": { "item": "homecore:homelink_microprocessor" },
+    "C": { "item": "homecore:homelink_communication_module" },
+    "R": { "item": "minecraft:redstone" }
+  },
+  "result": {
+    "id": "homelink_tasks:task_display",
+    "count": 1
+  }
+}

@@ -1,0 +1,196 @@
+{
+  "variants": {
+    "facing=north,part=bottom_left,size=single": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 0
+    },
+    "facing=north,part=bottom_right,size=single": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 0
+    },
+    "facing=north,part=top_left,size=single": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 0
+    },
+    "facing=north,part=top_right,size=single": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 0
+    },
+    "facing=north,part=bottom_left,size=wide": {
+      "model": "homelink_tasks:block/task_display_wide_bottom_left",
+      "y": 0
+    },
+    "facing=north,part=bottom_right,size=wide": {
+      "model": "homelink_tasks:block/task_display_wide_bottom_right",
+      "y": 0
+    },
+    "facing=north,part=top_left,size=wide": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 0
+    },
+    "facing=north,part=top_right,size=wide": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 0
+    },
+    "facing=north,part=bottom_left,size=large": {
+      "model": "homelink_tasks:block/task_display_large_bottom_left",
+      "y": 0
+    },
+    "facing=north,part=bottom_right,size=large": {
+      "model": "homelink_tasks:block/task_display_large_bottom_right",
+      "y": 0
+    },
+    "facing=north,part=top_left,size=large": {
+      "model": "homelink_tasks:block/task_display_large_top_left",
+      "y": 0
+    },
+    "facing=north,part=top_right,size=large": {
+      "model": "homelink_tasks:block/task_display_large_top_right",
+      "y": 0
+    },
+    "facing=east,part=bottom_left,size=single": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 90
+    },
+    "facing=east,part=bottom_right,size=single": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 90
+    },
+    "facing=east,part=top_left,size=single": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 90
+    },
+    "facing=east,part=top_right,size=single": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 90
+    },
+    "facing=east,part=bottom_left,size=wide": {
+      "model": "homelink_tasks:block/task_display_wide_bottom_left",
+      "y": 90
+    },
+    "facing=east,part=bottom_right,size=wide": {
+      "model": "homelink_tasks:block/task_display_wide_bottom_right",
+      "y": 90
+    },
+    "facing=east,part=top_left,size=wide": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 90
+    },
+    "facing=east,part=top_right,size=wide": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 90
+    },
+    "facing=east,part=bottom_left,size=large": {
+      "model": "homelink_tasks:block/task_display_large_bottom_left",
+      "y": 90
+    },
+    "facing=east,part=bottom_right,size=large": {
+      "model": "homelink_tasks:block/task_display_large_bottom_right",
+      "y": 90
+    },
+    "facing=east,part=top_left,size=large": {
+      "model": "homelink_tasks:block/task_display_large_top_left",
+      "y": 90
+    },
+    "facing=east,part=top_right,size=large": {
+      "model": "homelink_tasks:block/task_display_large_top_right",
+      "y": 90
+    },
+    "facing=south,part=bottom_left,size=single": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 180
+    },
+    "facing=south,part=bottom_right,size=single": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 180
+    },
+    "facing=south,part=top_left,size=single": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 180
+    },
+    "facing=south,part=top_right,size=single": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 180
+    },
+    "facing=south,part=bottom_left,size=wide": {
+      "model": "homelink_tasks:block/task_display_wide_bottom_left",
+      "y": 180
+    },
+    "facing=south,part=bottom_right,size=wide": {
+      "model": "homelink_tasks:block/task_display_wide_bottom_right",
+      "y": 180
+    },
+    "facing=south,part=top_left,size=wide": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 180
+    },
+    "facing=south,part=top_right,size=wide": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 180
+    },
+    "facing=south,part=bottom_left,size=large": {
+      "model": "homelink_tasks:block/task_display_large_bottom_left",
+      "y": 180
+    },
+    "facing=south,part=bottom_right,size=large": {
+      "model": "homelink_tasks:block/task_display_large_bottom_right",
+      "y": 180
+    },
+    "facing=south,part=top_left,size=large": {
+      "model": "homelink_tasks:block/task_display_large_top_left",
+      "y": 180
+    },
+    "facing=south,part=top_right,size=large": {
+      "model": "homelink_tasks:block/task_display_large_top_right",
+      "y": 180
+    },
+    "facing=west,part=bottom_left,size=single": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 270
+    },
+    "facing=west,part=bottom_right,size=single": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 270
+    },
+    "facing=west,part=top_left,size=single": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 270
+    },
+    "facing=west,part=top_right,size=single": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 270
+    },
+    "facing=west,part=bottom_left,size=wide": {
+      "model": "homelink_tasks:block/task_display_wide_bottom_left",
+      "y": 270
+    },
+    "facing=west,part=bottom_right,size=wide": {
+      "model": "homelink_tasks:block/task_display_wide_bottom_right",
+      "y": 270
+    },
+    "facing=west,part=top_left,size=wide": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 270
+    },
+    "facing=west,part=top_right,size=wide": {
+      "model": "homelink_tasks:block/task_display",
+      "y": 270
+    },
+    "facing=west,part=bottom_left,size=large": {
+      "model": "homelink_tasks:block/task_display_large_bottom_left",
+      "y": 270
+    },
+    "facing=west,part=bottom_right,size=large": {
+      "model": "homelink_tasks:block/task_display_large_bottom_right",
+      "y": 270
+    },
+    "facing=west,part=top_left,size=large": {
+      "model": "homelink_tasks:block/task_display_large_top_left",
+      "y": 270
+    },
+    "facing=west,part=top_right,size=large": {
+      "model": "homelink_tasks:block/task_display_large_top_right",
+      "y": 270
+    }
+  }
+}

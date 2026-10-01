@@ -1,0 +1,23 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="Apache-2.0"
+
+[[mods]]
+modId="homelink_tasks_validation"
+version="0.1.0"
+displayName="HomeLink Tasks Development Validation"
+description="Development-only runtime verification. Excluded from HomeLink Tasks releases."
+
+[[dependencies.homelink_tasks_validation]]
+modId="homelink_tasks"
+type="required"
+versionRange="[0.1.0,1.0.0)"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.homelink_tasks_validation]]
+modId="homecore"
+type="required"
+versionRange="[1.12.0,2.0.0)"
+ordering="AFTER"
+side="BOTH"
