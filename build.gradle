@@ -3,6 +3,7 @@ plugins {
     id 'maven-publish'
     id 'idea'
     id 'net.neoforged.moddev' version '2.0.148'
+    id 'net.darkhax.curseforgegradle' version '1.1.28'
 }
 
 version = mod_version
@@ -383,4 +384,38 @@ tasks.named('runUserReview') {
         if (!report.contains('TASKS_IN_GAME_OK') || report.contains('TASKS_IN_GAME_FAILED'))
             throw new GradleException('User-world verification failed; inspect user-review/logs/latest.log')
     }
+}
+
+def curseForgeVersion = providers.gradleProperty('mod_version').get()
+def curseForgePublishRequested = gradle.startParameter.taskNames.any {
+    it == 'publishToCurseForge' || it.endsWith(':publishToCurseForge')
+}
+def curseForgeToken = curseForgePublishRequested
+        ? providers.gradleProperty('curseforge_api_token')
+                .orElse(providers.environmentVariable('CURSEFORGE_API_TOKEN')).getOrNull()
+        : null
+if (curseForgePublishRequested && !curseForgeToken?.trim()) {
+    throw new GradleException('Set curseforge_api_token in your user Gradle properties or CURSEFORGE_API_TOKEN in the environment.')
+}
+
+tasks.register('publishToCurseForge', net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+    group = 'publishing'
+    description = 'Builds and uploads the HomeLink Tasks release JAR to CurseForge project 1725205.'
+    dependsOn tasks.named('check')
+    // Publishing is excluded from the configuration cache so the API token is never cached.
+    notCompatibleWithConfigurationCache('The CurseForge upload reads its API token only when publishing.')
+
+    apiToken = curseForgeToken
+    debugMode = providers.gradleProperty('curseforge_dry_run').map { it.toBoolean() }.getOrElse(false)
+
+    def mainFile = upload(1725205, tasks.named('jar'))
+    mainFile.displayName = "HomeLink Tasks ${curseForgeVersion}"
+    mainFile.changelog = "HomeLink Tasks ${curseForgeVersion} for Minecraft ${minecraft_version} and NeoForge ${neo_version}."
+    mainFile.changelogType = 'markdown'
+    mainFile.releaseType = 'release'
+    mainFile.addGameVersion(minecraft_version)
+    mainFile.addEnvironment('Client', 'Server')
+    mainFile.addModLoader('NeoForge')
+    mainFile.addRequirement('homecore')
+    mainFile.addOptional('homelink-storage')
 }
