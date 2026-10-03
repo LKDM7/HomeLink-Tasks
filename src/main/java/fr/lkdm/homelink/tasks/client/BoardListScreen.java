@@ -1,5 +1,8 @@
 package fr.lkdm.homelink.tasks.client;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
 import fr.lkdm.homelink.tasks.board.TaskBoard;
 import fr.lkdm.homelink.tasks.network.TaskPackets;
 import java.util.List;
@@ -34,8 +37,8 @@ public final class BoardListScreen extends TaskScreen {
         String oldSearch = search == null ? "" : search.getValue();
         String oldTitle = newTitle == null ? "" : newTitle.getValue();
         int left = left();
-        ClientTaskState.screen().ifPresent(pos -> addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks.screen_network"),
-                button -> minecraft.setScreen(new ScreenNetworkScreen(this, pos))).bounds(left + wide() - 144, 24, 144, 20).build()));
+        ClientTaskState.screen().ifPresent(pos -> addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.screen_network"),
+                button -> minecraft.setScreen(new ScreenNetworkScreen(this, pos))).bounds(left + wide() - 144, 24, 144, HomeLinkTheme.CONTROL_HEIGHT).build()));
         search = new EditBox(font, left, 48, wide(), 18, Component.translatable("screen.homelink_tasks.search"));
         search.setMaxLength(TaskBoard.MAX_TITLE);
         search.setHint(Component.translatable("screen.homelink_tasks.search"));
@@ -49,11 +52,11 @@ public final class BoardListScreen extends TaskScreen {
         newTitle.setHint(Component.translatable("screen.homelink_tasks.new_board"));
         newTitle.setValue(oldTitle);
         addRenderableWidget(newTitle);
-        addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks.create"),
+        addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.create"),
                 button -> {
                     String title = newTitle.getValue().strip();
                     if (!title.isEmpty()) TaskClientNetwork.createBoard(title);
-                }).bounds(left + wide() - 110, height - 26, 110, 20).build());
+                }).bounds(left + wide() - 110, height - 26, 110, HomeLinkTheme.CONTROL_HEIGHT).build());
     }
 
     private List<TaskPackets.BoardSummary> visible() {
@@ -66,12 +69,12 @@ public final class BoardListScreen extends TaskScreen {
     @Override public void renderContent(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         renderBackground(graphics, mouseX, mouseY, partialTick);
         int left = left();
-        graphics.drawString(font, title, left, 32, TaskTheme.TEXT, false);
+        graphics.drawString(font, title, left, 32, HomeLinkTheme.TEXT, false);
         List<TaskPackets.BoardSummary> boards = visible();
         if (boards.isEmpty()) {
             graphics.drawWordWrap(font, Component.translatable(ClientTaskState.boards().isEmpty()
                             ? "screen.homelink_tasks.no_boards" : "screen.homelink_tasks.no_match"),
-                    left, 76, wide(), TaskTheme.TEXT_MUTED);
+                    left, 76, wide(), HomeLinkTheme.MUTED);
             super.renderContent(graphics, mouseX, mouseY, partialTick);
             return;
         }
@@ -81,17 +84,16 @@ public final class BoardListScreen extends TaskScreen {
             TaskPackets.BoardSummary summary = boards.get(index);
             boolean hovered = mouseX >= left && mouseX <= left + wide() && mouseY >= y && mouseY <= y + ROW_HEIGHT - 2;
             graphics.fill(left, y, left + wide(), y + ROW_HEIGHT - 2,
-                    hovered ? TaskTheme.SURFACE_HOVER : TaskTheme.SURFACE);
-            graphics.drawString(font, TaskTheme.clip(font, summary.title(), wide() - 96), left + 6, y + 3, TaskTheme.TEXT, false);
+                    hovered ? HomeLinkTheme.HOVER : HomeLinkTheme.SURFACE);
+            graphics.drawString(font, HomeLinkUi.clip(font, summary.title(), wide() - 96), left + 6, y + 3, HomeLinkTheme.TEXT, false);
             graphics.drawString(font, Component.translatable("screen.homelink_tasks.board_summary",
                             summary.doneCount(), summary.cardCount(), summary.memberCount()),
-                    left + 6, y + 15, TaskTheme.TEXT_MUTED, false);
-            graphics.fill(left + 6, y + 28, left + wide() - 6, y + 30, TaskTheme.PANEL);
-            if (summary.cardCount() > 0) graphics.fill(left + 6, y + 28,
-                    left + 6 + (wide() - 12) * summary.doneCount() / summary.cardCount(), y + 30, TaskTheme.COPPER);
+                    left + 6, y + 15, HomeLinkTheme.MUTED, false);
+            HomeLinkUi.progressBar(graphics, left + 6, y + 28, wide() - 12, 2,
+                    (double) summary.doneCount() / Math.max(1, summary.cardCount()), HomeLinkTheme.ACCENT);
             graphics.drawString(font, Component.translatable("role.homelink_tasks."
                             + summary.role().name().toLowerCase(Locale.ROOT)),
-                    left + wide() - 84, y + 7, TaskTheme.COPPER, false);
+                    left + wide() - 84, y + 7, HomeLinkTheme.ACCENT, false);
             y += ROW_HEIGHT;
         }
         super.renderContent(graphics, mouseX, mouseY, partialTick);

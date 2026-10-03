@@ -1,5 +1,8 @@
 package fr.lkdm.homelink.tasks.client;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
 import fr.lkdm.homelink.tasks.board.BoardRole;
 import fr.lkdm.homelink.tasks.network.CardView;
 import fr.lkdm.homelink.tasks.network.PlanView;
@@ -51,17 +54,17 @@ public final class CardDetailScreen extends TaskScreen {
         ingredientButtons.clear();
         var view = ClientTaskState.card(cardId).orElse(null); if (view == null) return;
         int x = left(), w = wide(), half = (w - 6) / 2;
-        addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks.back"), ignored -> onClose()).bounds(x, 30, 72, 20).build());
-        addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks.edit_card"), ignored -> minecraft.setScreen(new CardActionsScreen(boardId, cardId))).bounds(x + w - 118, 30, 80, 20).build()).active = canEdit() || ClientCardPermissions.canClaim(view);
-        addRenderableWidget(TaskButton.builder(Component.literal("..."), ignored -> openMenu()).bounds(x + w - 32, 30, 32, 20).build());
+        addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.back"), ignored -> onClose()).bounds(x, 30, 72, HomeLinkTheme.CONTROL_HEIGHT).build());
+        addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.edit_card"), ignored -> minecraft.setScreen(new CardActionsScreen(boardId, cardId))).bounds(x + w - 118, 30, 80, HomeLinkTheme.CONTROL_HEIGHT).build()).active = canEdit() || ClientCardPermissions.canClaim(view);
+        addRenderableWidget(HomeLinkButton.builder(Component.literal("..."), ignored -> openMenu()).bounds(x + w - 32, 30, 32, HomeLinkTheme.CONTROL_HEIGHT).build());
         if (view.objective().isPresent()) {
-            addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks.recipe_short"),
-                    ignored -> minecraft.setScreen(new RecipeScreen(boardId, cardId))).bounds(x + 78, 30, 78, 20).build());
+            addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.recipe_short"),
+                    ignored -> minecraft.setScreen(new RecipeScreen(boardId, cardId))).bounds(x + 78, 30, 78, HomeLinkTheme.CONTROL_HEIGHT).build());
             view.objective().flatMap(objective -> ClientRecipeLookup.describe(objective.recipeId())).ifPresent(recipe -> {
                 for (int i = 0; i < recipe.ingredients().size(); i++) {
                     int index = i;
-                    var add = addRenderableWidget(TaskButton.builder(Component.literal("+"),
-                            ignored -> ingredientActions.create(index, this)).bounds(x + w - 24, 0, 24, 20).build());
+                    var add = addRenderableWidget(HomeLinkButton.builder(Component.literal("+"),
+                            ignored -> ingredientActions.create(index, this)).bounds(x + w - 24, 0, 24, HomeLinkTheme.CONTROL_HEIGHT).build());
                     add.visible = false;
                     add.active = ingredientActions.canCreate(index);
                     add.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable(
@@ -71,18 +74,18 @@ public final class CardDetailScreen extends TaskScreen {
             });
         }
         boolean pinned = ClientTaskState.pinned().stream().anyMatch(pin -> pin.card().equals(cardId));
-        addRenderableWidget(TaskButton.builder(Component.translatable(pinned ? "screen.homelink_tasks.unpin" : "screen.homelink_tasks.pin"), ignored ->
-                TaskClientNetwork.personal(pinned ? TaskPackets.PersonalCommand.UNPIN : TaskPackets.PersonalCommand.PIN, boardId, cardId)).bounds(x, height - 26, half, 20).build());
+        addRenderableWidget(HomeLinkButton.builder(Component.translatable(pinned ? "screen.homelink_tasks.unpin" : "screen.homelink_tasks.pin"), ignored ->
+                TaskClientNetwork.personal(pinned ? TaskPackets.PersonalCommand.UNPIN : TaskPackets.PersonalCommand.PIN, boardId, cardId)).bounds(x, height - 26, half, HomeLinkTheme.CONTROL_HEIGHT).build());
         if (view.type() == TaskType.CRAFT) {
             boolean tracked = ClientTaskState.tracking(cardId);
-            addRenderableWidget(TaskButton.primary(Component.translatable(tracked ? "screen.homelink_tasks.untrack" : "screen.homelink_tasks.track"), ignored ->
-                    TaskClientNetwork.personal(tracked ? TaskPackets.PersonalCommand.UNTRACK : TaskPackets.PersonalCommand.TRACK, boardId, cardId)).bounds(x + half + 6, height - 26, half, 20).build());
+            addRenderableWidget(HomeLinkButton.builder(Component.translatable(tracked ? "screen.homelink_tasks.untrack" : "screen.homelink_tasks.track"), ignored ->
+                    TaskClientNetwork.personal(tracked ? TaskPackets.PersonalCommand.UNTRACK : TaskPackets.PersonalCommand.TRACK, boardId, cardId)).bounds(x + half + 6, height - 26, half, HomeLinkTheme.CONTROL_HEIGHT).build());
         } else {
             TaskStatus next = view.status() == TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE;
             if (!ClientCardPermissions.canMove(view) && ClientCardPermissions.canClaim(view))
-                addRenderableWidget(TaskButton.primary(Component.translatable("screen.homelink_tasks.claim"), ignored -> TaskClientNetwork.card(TaskPackets.CardCommand.CLAIM, boardId, cardId, "", false)).bounds(x + half + 6, height - 26, half, 20).build());
-            else addRenderableWidget(TaskButton.primary(Component.translatable(next == TaskStatus.DONE ? "screen.homelink_tasks.complete" : "screen.homelink_tasks.reopen_task"), ignored ->
-                    TaskClientNetwork.move(boardId, cardId, next, view.order())).bounds(x + half + 6, height - 26, half, 20).build()).active = ClientCardPermissions.canMoveTo(view, next);
+                addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.claim"), ignored -> TaskClientNetwork.card(TaskPackets.CardCommand.CLAIM, boardId, cardId, "", false)).bounds(x + half + 6, height - 26, half, HomeLinkTheme.CONTROL_HEIGHT).build());
+            else addRenderableWidget(HomeLinkButton.builder(Component.translatable(next == TaskStatus.DONE ? "screen.homelink_tasks.complete" : "screen.homelink_tasks.reopen_task"), ignored ->
+                    TaskClientNetwork.move(boardId, cardId, next, view.order())).bounds(x + half + 6, height - 26, half, HomeLinkTheme.CONTROL_HEIGHT).build()).active = ClientCardPermissions.canMoveTo(view, next);
         }
     }
     private void openMenu() {
@@ -113,7 +116,7 @@ public final class CardDetailScreen extends TaskScreen {
         Optional<CardView> card = ClientTaskState.card(cardId);
         if (card.isEmpty()) {
             graphics.drawCenteredString(font, Component.translatable("screen.homelink_tasks.card_gone"),
-                    width / 2, height / 2, TaskTheme.TEXT_MUTED);
+                    width / 2, height / 2, HomeLinkTheme.MUTED);
             super.renderContent(graphics, mouseX, mouseY, partialTick);
             return;
         }
@@ -122,11 +125,11 @@ public final class CardDetailScreen extends TaskScreen {
         graphics.pose().pushPose();
         graphics.pose().translate(0, -contentScroll, 0);
         int y = 58;
-        graphics.drawString(font, TaskTheme.clip(font, card.get().title(), wide()), left, y, TaskTheme.TEXT, false);
+        graphics.drawString(font, HomeLinkUi.clip(font, card.get().title(), wide()), left, y, HomeLinkTheme.TEXT, false);
         y += 14;
         if (!card.get().description().isBlank()) {
             for (var line : font.split(Component.literal(card.get().description()), wide())) {
-                graphics.drawString(font, line, left, y, TaskTheme.TEXT_MUTED, false);
+                graphics.drawString(font, line, left, y, HomeLinkTheme.MUTED, false);
                 y += 10;
             }
             y += 4;
@@ -134,7 +137,7 @@ public final class CardDetailScreen extends TaskScreen {
         if (card.get().type() == TaskType.CRAFT) y = renderCraft(graphics, card.get(), left, y);
         else {
             var lines = font.split(Component.translatable("screen.homelink_tasks.manual_hint"), wide());
-            for (var line : lines) { graphics.drawString(font, line, left, y, TaskTheme.TEXT_MUTED, false); y += 11; }
+            for (var line : lines) { graphics.drawString(font, line, left, y, HomeLinkTheme.MUTED, false); y += 11; }
         }
         contentHeight = y - 56;
         contentScroll = Math.clamp(contentScroll, 0, Math.max(0, contentHeight - (height - 96)));
@@ -150,20 +153,20 @@ public final class CardDetailScreen extends TaskScreen {
         int y = top;
         graphics.renderItem(objective.target(), left, y - 4);
         graphics.drawString(font, Component.translatable("screen.homelink_tasks.progress",
-                objective.completedQuantity(), objective.targetQuantity()), left + 22, y, TaskTheme.TEXT, false);
+                objective.completedQuantity(), objective.targetQuantity()), left + 22, y, HomeLinkTheme.TEXT, false);
         y += 14;
-        graphics.drawString(font, Component.translatable("screen.homelink_tasks.ingredients"), left, y, TaskTheme.TEXT_MUTED, false);
+        graphics.drawString(font, Component.translatable("screen.homelink_tasks.ingredients"), left, y, HomeLinkTheme.MUTED, false);
         y += 16;
         Optional<PlanView> plan = ClientTaskState.plan(cardId);
         if (plan.isEmpty()) {
             graphics.drawString(font, Component.translatable("screen.homelink_tasks.plan_pending"),
-                    left, y, TaskTheme.TEXT_MUTED, false);
+                    left, y, HomeLinkTheme.MUTED, false);
             return y + 12;
         }
         PlanView view = plan.get();
         if (objective.remaining() == 0) {
             graphics.drawString(font, Component.translatable("screen.homelink_tasks.plan_finished"),
-                    left, y, TaskTheme.READY, false);
+                    left, y, TaskAvailabilityStyle.READY, false);
             return y + 12;
         }
         for (int index = 0; index < view.ingredients().size(); index++) {
@@ -176,15 +179,15 @@ public final class CardDetailScreen extends TaskScreen {
             }
             y += 30;
         }
-        int colour = TaskTheme.colour(view.state());
-        for (var line : font.split(Component.literal(TaskTheme.symbol(view.state()) + " ").append(TaskTheme.label(view.state(), view.storageConfigured())), wide())) {
+        int colour = TaskAvailabilityStyle.colour(view.state());
+        for (var line : font.split(Component.literal(TaskAvailabilityStyle.symbol(view.state()) + " ").append(TaskAvailabilityStyle.label(view.state(), view.storageConfigured())), wide())) {
             graphics.drawString(font, line, left, y, colour, false); y += 11;
         }
         if (view.state() == AvailabilityState.IN_STORAGE
                 && view.access() == fr.lkdm.homecore.api.stock.StockAccess.READ_ONLY) {
             // Seeing a stock is not being allowed to take it, and the screen must not promise otherwise.
             for (var line : font.split(Component.translatable("screen.homelink_tasks.withdrawal_restricted"), wide())) {
-                graphics.drawString(font, line, left, y, TaskTheme.IN_STORAGE, false); y += 11;
+                graphics.drawString(font, line, left, y, TaskAvailabilityStyle.IN_STORAGE, false); y += 11;
             }
         }
         return y;
@@ -198,8 +201,8 @@ public final class CardDetailScreen extends TaskScreen {
     private void renderIngredient(GuiGraphics graphics, PlanView.Entry entry, boolean storageConfigured,
                                   int left, int y) {
         graphics.renderItem(entry.display(), left, y - 4);
-        int colour = TaskTheme.colour(entry.state());
-        graphics.drawString(font, TaskTheme.symbol(entry.state()), left + 20, y, colour, false);
+        int colour = TaskAvailabilityStyle.colour(entry.state());
+        graphics.drawString(font, TaskAvailabilityStyle.symbol(entry.state()), left + 20, y, colour, false);
         Component detail = switch (entry.state()) {
             case READY -> Component.translatable("screen.homelink_tasks.part_inventory", entry.fromInventory(),
                     entry.required());
@@ -211,8 +214,8 @@ public final class CardDetailScreen extends TaskScreen {
             case UNVERIFIED -> Component.translatable("screen.homelink_tasks.part_unverified",
                     entry.allocated(), entry.required());
         };
-        graphics.drawString(font, TaskTheme.clip(font, entry.display().getHoverName().getString(), wide() - 62), left + 32, y - 3, TaskTheme.TEXT, false);
-        graphics.drawString(font, TaskTheme.clip(font, detail.getString(), wide() - 62), left + 32, y + 8, colour, false);
+        graphics.drawString(font, HomeLinkUi.clip(font, entry.display().getHoverName().getString(), wide() - 62), left + 32, y - 3, HomeLinkTheme.TEXT, false);
+        graphics.drawString(font, HomeLinkUi.clip(font, detail.getString(), wide() - 62), left + 32, y + 8, colour, false);
     }
 
     private void requestPlan() {

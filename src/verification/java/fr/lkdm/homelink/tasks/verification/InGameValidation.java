@@ -602,6 +602,16 @@ public final class InGameValidation {
                 add("capture centered view " + pixels + "/" + index, () -> capture(c, "review-centered-" + pixels + "-" + view), () -> true);
             }
         }
+        add("GUI scale 3", () -> {
+            GLFW.glfwSetWindowSize(c.getWindow().getWindow(), 1280, 720);
+            c.options.guiScale().set(3); c.resizeDisplay();
+        }, () -> true);
+        for (int index = 0; index < 23; index++) {
+            int view = index;
+            add("check scaled view 3/" + index, () -> open(c, view), () -> true);
+            add("capture scaled view 3/" + index, () -> capture(c, "review-scale3-" + view), () -> true);
+        }
+        add("restore GUI scale", () -> { c.options.guiScale().set(2); c.resizeDisplay(); }, () -> true);
         add("display geometry fixture", () -> server(c, () -> {
             var level = c.getSingleplayerServer().overworld();
             level.setBlockAndUpdate(ORIGIN.relative(Direction.NORTH), Blocks.STONE.defaultBlockState());
@@ -679,6 +689,7 @@ public final class InGameValidation {
 
     private static void capture(Minecraft c, String name) {
         try {
+            verifyKeyboardTraversal(c, name);
             var path = c.gameDirectory.toPath().resolve("screenshots"); Files.createDirectories(path);
             try (var image = Screenshot.takeScreenshot(c.getMainRenderTarget())) { image.writeToFile(path.resolve(name + ".png")); }
             if (c.screen instanceof TaskScreen) for (var child : c.screen.children()) if (child instanceof AbstractWidget w && w.visible) {
@@ -691,6 +702,39 @@ public final class InGameValidation {
             }
             LogUtils.getLogger().info("TASKS_CAPTURE {} gui={}x{}", name, c.getWindow().getGuiScaledWidth(), c.getWindow().getGuiScaledHeight());
         } catch (java.io.IOException e) { throw new IllegalStateException(e); }
+    }
+
+    /** Walk the real vanilla focus path, including fields, without activating actions. */
+    private static void verifyKeyboardTraversal(Minecraft c, String name) {
+        if (!(c.screen instanceof TaskScreen screen)) return;
+        var expected = screen.children().stream().filter(child -> child instanceof AbstractWidget widget
+                && widget.visible && widget.active).map(child -> (AbstractWidget) child).toList();
+        if (expected.isEmpty()) return;
+        var previous = screen.getFocused();
+        boolean previousFocused = previous != null && previous.isFocused();
+        var visited = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<AbstractWidget, Boolean>());
+        AbstractWidget first = null;
+        try {
+            if (previous != null) previous.setFocused(false);
+            screen.setFocused(null);
+            for (int index = 0; index < expected.size(); index++) {
+                // Screen performs focus navigation and then returns false; inspect the actual path.
+                screen.keyPressed(GLFW.GLFW_KEY_TAB, 0, 0);
+                require(screen.getFocused() instanceof AbstractWidget, name + " lost keyboard focus");
+                var current = (AbstractWidget) screen.getFocused();
+                if (index == 0) first = current;
+                require(current.visible && current.active && current.isFocused(), name + " focused an unavailable control");
+                require(visited.add(current), name + " keyboard cycle repeated before visiting every control");
+            }
+            require(visited.containsAll(expected), name + " keyboard traversal skipped controls");
+            screen.keyPressed(GLFW.GLFW_KEY_TAB, 0, 0);
+            require(screen.getFocused() == first && first.isFocused(), name + " keyboard traversal did not wrap to its first control");
+            LogUtils.getLogger().info("TASKS_KEYBOARD_OK {} controls={}", name, visited.size());
+        } finally {
+            if (screen.getFocused() != null) screen.getFocused().setFocused(false);
+            screen.setFocused(previous);
+            if (previous != null) previous.setFocused(previousFocused);
+        }
     }
     private static void server(Minecraft c, Runnable action) {
         serverDone = false;

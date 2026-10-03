@@ -1,5 +1,8 @@
 package fr.lkdm.homelink.tasks.client;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkScreenLayout;
 import fr.lkdm.homelink.tasks.network.TaskPackets;
 import java.util.Optional;
 import net.minecraft.client.gui.GuiGraphics;
@@ -21,11 +24,12 @@ public abstract class TaskScreen extends Screen {
     @Override protected final void init() {
         int windowWidth = minecraft.getWindow().getGuiScaledWidth();
         int windowHeight = minecraft.getWindow().getGuiScaledHeight();
-        // Same content dimensions and external bevel as Dashboard.
-        width = Math.min(520, windowWidth - 16);
-        height = Math.min(340, windowHeight - 16);
-        guiLeft = (windowWidth - width) / 2;
-        guiTop = (windowHeight - height) / 2;
+        var layout = HomeLinkScreenLayout.fit(windowWidth, windowHeight,
+                HomeLinkTheme.DEFAULT_MAX_WIDTH, HomeLinkTheme.DEFAULT_MAX_HEIGHT);
+        width = layout.width();
+        height = layout.height();
+        guiLeft = layout.x();
+        guiTop = layout.y();
         initContent();
     }
 
@@ -35,9 +39,8 @@ public abstract class TaskScreen extends Screen {
             & net.minecraft.client.gui.components.Renderable
             & net.minecraft.client.gui.narration.NarratableEntry> T addRenderableWidget(T widget) {
         if (widget instanceof net.minecraft.client.gui.components.EditBox input) {
-            input.setHeight(18);
-            input.setTextColor(TaskTheme.TEXT);
-            input.setTextColorUneditable(TaskTheme.TEXT_MUTED);
+            input.setHeight(HomeLinkTheme.CONTROL_HEIGHT);
+            HomeLinkUi.input(input);
         }
         return super.addRenderableWidget(widget);
     }
@@ -65,27 +68,21 @@ public abstract class TaskScreen extends Screen {
     public void renderContent(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         for (var renderable : renderables) renderable.render(graphics, mouseX, mouseY, partialTick);
         if (notice != null && System.currentTimeMillis() < noticeUntil) {
-            graphics.fill(6, 5, width - 6, 24, TaskTheme.PANEL);
+            graphics.fill(6, 5, width - 6, 24, HomeLinkTheme.HEADER);
             graphics.pose().pushPose();
             graphics.pose().translate(0, 0, 1);
-            graphics.drawString(font, TaskTheme.clip(font, notice.getString(), width - 28), 14, 10, TaskTheme.IN_STORAGE, false);
+            graphics.drawString(font, HomeLinkUi.clip(font, notice.getString(), width - 28), 14, 10, TaskAvailabilityStyle.IN_STORAGE, false);
             graphics.pose().popPose();
             if (mouseY < 24) graphics.renderTooltip(font, font.split(notice, Math.min(300, width - 24)), mouseX, mouseY);
         }
     }
 
     @Override public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        graphics.fill(-3, -3, width + 3, height + 3, -12, 0xFF141617);
-        graphics.fill(-2, -2, width + 2, height + 2, -12, 0xFF6B6E70);
-        graphics.fill(0, 0, width, height, -11, TaskTheme.ANTHRACITE);
-        graphics.fill(0, 0, width, 29, -10, TaskTheme.PANEL);
-        graphics.renderOutline(0, 0, width, height, TaskTheme.STEEL);
-        graphics.fill(10, height - 29, width - 10, height - 28, TaskTheme.STEEL);
-        graphics.drawString(font, "HomeLink Tasks", 14, 11, TaskTheme.TEXT, false);
-        TaskTheme.screw(graphics, 4, 4);
-        TaskTheme.screw(graphics, width - 8, 4);
-        TaskTheme.screw(graphics, 4, height - 8);
-        TaskTheme.screw(graphics, width - 8, height - 8);
+        graphics.pose().pushPose();
+        graphics.pose().translate(0, 0, -12);
+        HomeLinkUi.frame(graphics, 0, 0, width, height);
+        graphics.pose().popPose();
+        graphics.drawString(font, "HomeLink Tasks", 14, 11, HomeLinkTheme.TEXT, false);
     }
 
     public boolean readOnly() { return false; }

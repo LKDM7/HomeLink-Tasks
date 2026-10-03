@@ -1,5 +1,8 @@
 package fr.lkdm.homelink.tasks.client;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
 import fr.lkdm.homelink.tasks.board.BoardRole;
 import fr.lkdm.homelink.tasks.network.BoardView;
 import fr.lkdm.homelink.tasks.network.MemberPackets;
@@ -38,7 +41,13 @@ public final class BoardSettingsScreen extends TaskScreen {
         boolean owner = board.viewerRole() == BoardRole.OWNER;
         int third = (wide - 12) / 4;
         String[] sections = {"general", "members", "advanced", "visibility"};
-        for (int i = 0; i < 4; i++) { int tab = i; addRenderableWidget(TaskButton.tab(Component.translatable("screen.homelink_tasks." + sections[i]), ignored -> { section = tab; dataChanged(); }, section == i).bounds(left + i * (third + 4), 51, third, 20).build()); }
+        for (int i = 0; i < 4; i++) {
+            int tab = i;
+            addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks." + sections[i]),
+                    ignored -> { section = tab; dataChanged(); })
+                    .bounds(left + i * (third + 4), 51, third, HomeLinkTheme.CONTROL_HEIGHT)
+                    .build().navigation(section == i)).active = section != i;
+        }
         if (section == 0) {
             String oldName = name == null ? board.title() : name.getValue();
             String oldDescription = description == null ? board.description() : description.getValue();
@@ -95,8 +104,8 @@ public final class BoardSettingsScreen extends TaskScreen {
     }
 
     private net.minecraft.client.gui.components.Button button(String key, int x, int y, int wide, Runnable run) {
-        return addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks." + key),
-                ignored -> run.run()).bounds(x, y, wide, 20).build());
+        return addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks." + key),
+                ignored -> run.run()).bounds(x, y, wide, HomeLinkTheme.CONTROL_HEIGHT).build());
     }
 
     private void toggle(String key, net.neoforged.neoforge.common.ModConfigSpec.BooleanValue value,
@@ -139,10 +148,10 @@ public final class BoardSettingsScreen extends TaskScreen {
     @Override public void renderContent(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         renderBackground(graphics, mouseX, mouseY, partialTick);
         int left = left();
-        graphics.drawString(font, title, left, 33, TaskTheme.TEXT, false);
+        graphics.drawString(font, title, left, 33, HomeLinkTheme.TEXT, false);
         if (section == 0) {
-            graphics.drawString(font, Component.translatable("screen.homelink_tasks.title"), left, 81, TaskTheme.TEXT_MUTED, false);
-            graphics.drawString(font, Component.translatable("screen.homelink_tasks.description"), left, 129, TaskTheme.TEXT_MUTED, false);
+            graphics.drawString(font, Component.translatable("screen.homelink_tasks.title"), left, 81, HomeLinkTheme.MUTED, false);
+            graphics.drawString(font, Component.translatable("screen.homelink_tasks.description"), left, 129, HomeLinkTheme.MUTED, false);
         }
         var players = ClientTaskState.members();
         if (section == 1 && !players.isEmpty()) {
@@ -150,7 +159,7 @@ public final class BoardSettingsScreen extends TaskScreen {
             String role = board() != null && board().members().containsKey(player.id())
                     ? Component.translatable("role.homelink_tasks." + board().members().get(player.id()).name().toLowerCase(java.util.Locale.ROOT)).getString()
                     : Component.translatable("screen.homelink_tasks.known_player").getString();
-            graphics.drawString(font, TaskTheme.clip(font, player.name() + " / " + role, contentWidth() - 76), left + 36, 96, TaskTheme.TEXT, false);
+            graphics.drawString(font, HomeLinkUi.clip(font, player.name() + " / " + role, contentWidth() - 76), left + 36, 96, HomeLinkTheme.TEXT, false);
         }        super.renderContent(graphics, mouseX, mouseY, partialTick);
     }
 }

@@ -1,5 +1,7 @@
 package fr.lkdm.homelink.tasks.client;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
 import fr.lkdm.homelink.tasks.network.TaskPackets;
 import fr.lkdm.homelink.tasks.stock.AvailabilityState;
 import fr.lkdm.homelink.tasks.task.TaskStatus;
@@ -68,8 +70,8 @@ public final class PinnedTaskOverlay {
         pose.pushPose();
         pose.scale(scale, scale, 1.0F);
         graphics.fill(x, y, x + panelWidth, y + panelHeight,
-                TaskClientConfig.HUD_HIGH_CONTRAST.get() ? 0xFF13151A : TaskTheme.ANTHRACITE);
-        graphics.fill(x, y, x + 2, y + panelHeight, TaskTheme.COPPER);
+                TaskClientConfig.HUD_HIGH_CONTRAST.get() ? 0xFF13151A : HomeLinkTheme.BACKGROUND);
+        graphics.fill(x, y, x + 2, y + panelHeight, HomeLinkTheme.ACCENT);
         int line = y + PADDING;
         for (TaskPackets.PinnedView view : pinned) {
             renderEntry(graphics, view, x + PADDING, line, panelWidth - PADDING * 2, compact);
@@ -81,25 +83,25 @@ public final class PinnedTaskOverlay {
     private static void renderEntry(GuiGraphics graphics, TaskPackets.PinnedView view, int x, int y,
                                     int available, boolean compact) {
         var font = Minecraft.getInstance().font;
-        int titleColour = view.status() == TaskStatus.DONE ? TaskTheme.READY : TaskTheme.TEXT;
+        int titleColour = view.status() == TaskStatus.DONE ? TaskAvailabilityStyle.READY : HomeLinkTheme.TEXT;
         boolean crafting = view.wanted() > 0;
         String progress = crafting ? view.completed() + " / " + view.wanted()
                 : Component.translatable("column.homelink_tasks."
                         + view.status().name().toLowerCase(java.util.Locale.ROOT)).getString();
         int progressWidth = font.width(progress);
-        String title = TaskTheme.clip(font, view.title(), available - (compact ? progressWidth + 6 : 0));
+        String title = HomeLinkUi.clip(font, view.title(), available - (compact ? progressWidth + 6 : 0));
         graphics.drawString(font, title, x, y, titleColour, false);
         if (compact) {
-            graphics.drawString(font, progress, x + available - progressWidth, y, TaskTheme.TEXT_MUTED, false);
+            graphics.drawString(font, progress, x + available - progressWidth, y, HomeLinkTheme.MUTED, false);
             return;
         }
-        graphics.drawString(font, progress, x, y + LINE_HEIGHT, TaskTheme.TEXT_MUTED, false);
+        graphics.drawString(font, progress, x, y + LINE_HEIGHT, HomeLinkTheme.MUTED, false);
         if (!crafting) return;
         // The materials hint is computed for the player reading it, never for the card's owner.
-        int colour = TaskTheme.colour(view.availability());
-        String summary = TaskTheme.symbol(view.availability()) + " "
-                + TaskTheme.label(view.availability(), view.storageConfigured()).getString();
-        graphics.drawString(font, TaskTheme.clip(font, summary, available - progressWidth - 8),
+        int colour = TaskAvailabilityStyle.colour(view.availability());
+        String summary = TaskAvailabilityStyle.symbol(view.availability()) + " "
+                + TaskAvailabilityStyle.label(view.availability(), view.storageConfigured()).getString();
+        graphics.drawString(font, HomeLinkUi.clip(font, summary, available - progressWidth - 8),
                 x + progressWidth + 8, y + LINE_HEIGHT, colour, false);
     }
 

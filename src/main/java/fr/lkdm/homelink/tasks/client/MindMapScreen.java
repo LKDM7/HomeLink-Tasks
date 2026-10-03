@@ -1,5 +1,8 @@
 package fr.lkdm.homelink.tasks.client;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
 import com.mojang.blaze3d.vertex.PoseStack;
 import fr.lkdm.homelink.tasks.network.BoardView;
 import fr.lkdm.homelink.tasks.network.CardView;
@@ -49,12 +52,12 @@ public final class MindMapScreen extends TaskScreen {
 
     @Override protected void initContent() {
         if (!positioned) { recenter(); positioned = true; }
-        addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks.project_materials"),
-                button -> minecraft.setScreen(new ProjectMaterialsScreen(boardId))).bounds(106, 30, Math.max(56, Math.min(140, width - 216)), 20).build());
-        addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks.board"),
-                        button -> BoardScreen.openOrRefresh()).bounds(10, 30, 90, 20).build());
-        addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks.recenter"),
-                        button -> recenter()).bounds(width - 100, 30, 90, 20).build());
+        addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.project_materials"),
+                button -> minecraft.setScreen(new ProjectMaterialsScreen(boardId))).bounds(106, 30, Math.max(56, Math.min(140, width - 216)), HomeLinkTheme.CONTROL_HEIGHT).build());
+        addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.board"),
+                        button -> BoardScreen.openOrRefresh()).bounds(10, 30, 90, HomeLinkTheme.CONTROL_HEIGHT).build());
+        addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.recenter"),
+                        button -> recenter()).bounds(width - 100, 30, 90, HomeLinkTheme.CONTROL_HEIGHT).build());
     }
 
     private void recenter() {
@@ -75,7 +78,7 @@ public final class MindMapScreen extends TaskScreen {
         Optional<BoardView> board = ClientTaskState.board().filter(open -> open.id().equals(boardId));
         if (board.isEmpty()) {
             graphics.drawCenteredString(font, Component.translatable("screen.homelink_tasks.empty_board"),
-                    width / 2, height / 2, TaskTheme.TEXT_MUTED);
+                    width / 2, height / 2, HomeLinkTheme.MUTED);
             super.renderContent(graphics, mouseX, mouseY, partialTick);
             return;
         }
@@ -94,7 +97,7 @@ public final class MindMapScreen extends TaskScreen {
         }
         pose.popPose();
         graphics.disableScissor();
-        graphics.drawString(font, TaskTheme.clip(font, board.get().title(), width - 24), 12, 56, TaskTheme.TEXT, false);
+        graphics.drawString(font, HomeLinkUi.clip(font, board.get().title(), width - 24), 12, 56, HomeLinkTheme.TEXT, false);
         super.renderContent(graphics, mouseX, mouseY, partialTick);
         nodeAt(mouseX, mouseY).filter(card -> waiting(board.get(), card)).ifPresent(card ->
                 graphics.renderTooltip(font, Component.translatable("badge.homelink_tasks.waiting"), mouseX, mouseY));
@@ -106,11 +109,11 @@ public final class MindMapScreen extends TaskScreen {
         // A parent link is solid; a dependency is drawn thinner so the two are never confused.
         card.parent().flatMap(parent -> find(board, parent)).ifPresent(parent ->
                 line(graphics, x, y, parent.nodeX() + NODE_WIDTH / 2, parent.nodeY() + NODE_HEIGHT / 2,
-                        TaskTheme.STEEL, 2));
+                        HomeLinkTheme.LINE, 2));
         for (UUID dependency : card.dependencies()) {
             find(board, dependency).ifPresent(other ->
                     line(graphics, x, y, other.nodeX() + NODE_WIDTH / 2, other.nodeY() + NODE_HEIGHT / 2,
-                            TaskTheme.COPPER, 1));
+                            HomeLinkTheme.ACCENT, 1));
         }
     }
 
@@ -125,8 +128,8 @@ public final class MindMapScreen extends TaskScreen {
     private void renderNode(GuiGraphics graphics, BoardView board, CardView card) {
         int x = card.nodeX() + (card.id().equals(dragged) ? (int) nodeDeltaX : 0);
         int y = card.nodeY() + (card.id().equals(dragged) ? (int) nodeDeltaY : 0);
-        graphics.fill(x, y, x + NODE_WIDTH, y + NODE_HEIGHT, TaskTheme.SURFACE);
-        int border = card.status() == TaskStatus.DONE ? TaskTheme.READY : TaskTheme.STEEL;
+        graphics.fill(x, y, x + NODE_WIDTH, y + NODE_HEIGHT, HomeLinkTheme.SURFACE);
+        int border = card.status() == TaskStatus.DONE ? TaskAvailabilityStyle.READY : HomeLinkTheme.LINE;
         graphics.fill(x, y, x + NODE_WIDTH, y + 1, border);
         graphics.fill(x, y + NODE_HEIGHT - 1, x + NODE_WIDTH, y + NODE_HEIGHT, border);
         int textX = x + 4;
@@ -134,16 +137,16 @@ public final class MindMapScreen extends TaskScreen {
             graphics.renderItem(card.objective().get().target(), x + 3, y + 3);
             textX = x + 22;
         }
-        graphics.drawString(font, TaskTheme.clip(font, card.title(), NODE_WIDTH - (textX - x) - 4),
-                textX, y + 4, TaskTheme.TEXT, false);
+        graphics.drawString(font, HomeLinkUi.clip(font, card.title(), NODE_WIDTH - (textX - x) - 4),
+                textX, y + 4, HomeLinkTheme.TEXT, false);
         if (card.type() == TaskType.CRAFT && card.objective().isPresent()) {
             var objective = card.objective().get();
-            graphics.drawString(font, TaskTheme.clip(font, objective.completedQuantity() + " / " + objective.targetQuantity(), NODE_WIDTH - (textX - x) - 14),
-                    textX, y + 16, TaskTheme.TEXT_MUTED, false);
+            graphics.drawString(font, HomeLinkUi.clip(font, objective.completedQuantity() + " / " + objective.targetQuantity(), NODE_WIDTH - (textX - x) - 14),
+                    textX, y + 16, HomeLinkTheme.MUTED, false);
         }
         if (waiting(board, card)) {
             // Waiting is a badge, never a fourth column, and it never rejects a real batch.
-            graphics.drawString(font, "!", x + NODE_WIDTH - 8, y + 16, TaskTheme.IN_STORAGE, false);
+            graphics.drawString(font, "!", x + NODE_WIDTH - 8, y + 16, TaskAvailabilityStyle.IN_STORAGE, false);
         }
     }
 

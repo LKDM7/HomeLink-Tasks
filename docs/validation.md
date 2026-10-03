@@ -1,4 +1,36 @@
-# Validation de HomeLink Tasks 0.1.0
+# Validation de HomeLink Tasks
+
+## Migration du kit UI — Tasks 0.2.0 / HomeCore 1.14.0
+
+Le build, les 78 tests unitaires et le contrôle du JAR ont été exécutés le
+3 octobre 2026, sans échec. Le serveur GameTest sans Storage a exécuté ses
+40 tests requis avec succès ; le profil avec Storage et Energy a réussi ses
+46 tests requis. Les logs locaux sont `build/ui-kit-build.log`,
+`build/ui-kit-gametest.log` et `build/ui-kit-gametest-storage.log`. Ils concernent le checkout de migration ;
+ils n’indiquent aucune publication Maven ou validation distante.
+
+Le parcours client disponible utilise `runInGame -PguiReview`, avec
+`-PguiReviewLanguage=fr_fr` ou `en_us`. Il couvre 23 vues aux fenêtres
+1280 × 720 et 640 × 480, aux GUI scales 2 et 3, ainsi que les scénarios
+et écrans physiques existants. Chaque capture d’un TaskScreen vérifie les
+contrôles visibles, leurs bornes et chevauchements, et la tabulation à travers
+tous les contrôles actifs et visibles. Les deux parcours ont réussi le
+3 octobre 2026 : marqueur `TASKS_IN_GAME_OK` à 16:35:21 en anglais et
+16:39:32 en français. Chaque langue a conservé 82 captures et son journal sous
+`build/validation/ui-kit-en` ou `build/validation/ui-kit-fr`. La revue visuelle
+a inspecté les 23 petites vues de chaque langue, ainsi que deux vues anglaises
+en grande fenêtre et au GUI scale 3, sans défaut visuel bloquant observé.
+
+The UI migration build passed 78 unit tests, the release-JAR checks and
+40 required dedicated-server GameTests without Storage and 46 with Storage/Energy. The client review
+supports explicit French/English selection, two window sizes, GUI scales 2/3
+and a complete active/visible widget tab cycle. Both client runs passed on
+October 3, 2026, with 82 captures archived per language. Visual review covered
+all 23 small views in each language and two additional English large/scale-3
+views, with no blocking visual defect observed. These local results do not
+claim a remote CI run or Maven publication.
+
+## Résultats historiques de la reprise
 
 État du chantier au 1er octobre 2026, après refonte UX. Tasks consomme les contrats publics
 de HomeCore 1.12.0 / API 1.8.0 (stock, recettes, reçus de production). Ils sont publiés : le

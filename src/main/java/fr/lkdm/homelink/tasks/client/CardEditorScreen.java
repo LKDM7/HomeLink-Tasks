@@ -1,5 +1,7 @@
 package fr.lkdm.homelink.tasks.client;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
 import fr.lkdm.homecore.api.recipe.RecipeDescriptor;
 import fr.lkdm.homelink.tasks.objective.CraftObjective;
 import java.util.List;
@@ -30,8 +32,12 @@ public final class CardEditorScreen extends TaskScreen {
         String keptQuantity = quantity == null ? "1" : quantity.getValue();
         int x = left(), w = wide(), half = (w - 6) / 2;
         if (existing == null) {
-            addRenderableWidget(TaskButton.tab(Component.translatable("screen.homelink_tasks.type_manual"), ignored -> { crafting = false; rebuild(); }, !crafting).bounds(x, 51, half, 22).build());
-            addRenderableWidget(TaskButton.tab(Component.translatable("screen.homelink_tasks.type_craft"), ignored -> { crafting = true; rebuild(); }, crafting).bounds(x + half + 6, 51, half, 22).build());
+            addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.type_manual"),
+                    ignored -> { crafting = false; rebuild(); })
+                    .bounds(x, 51, half, HomeLinkTheme.CONTROL_HEIGHT).build().navigation(!crafting)).active = crafting;
+            addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.type_craft"),
+                    ignored -> { crafting = true; rebuild(); })
+                    .bounds(x + half + 6, 51, half, HomeLinkTheme.CONTROL_HEIGHT).build().navigation(crafting)).active = !crafting;
         }
         boolean craft = existing == null && crafting;
         name = new EditBox(font, x, craft ? 173 : 100, w, 20, Component.translatable("screen.homelink_tasks.title"));
@@ -44,11 +50,11 @@ public final class CardEditorScreen extends TaskScreen {
         if (craft) {
             addRenderableWidget(quantity);
             Button.OnPress pick = ignored -> minecraft.setScreen(new ItemPickerScreen(this, this::selectItem));
-            addRenderableWidget((target.isEmpty() ? TaskButton.builder(Component.translatable("screen.homelink_tasks.choose_item"), pick) : TaskButton.item(target, pick)).bounds(x, 91, w, 22).build());
-            if (!alternatives.isEmpty()) addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks.recipe_selection", alternative + 1, alternatives.size()), ignored -> minecraft.setScreen(new RecipePickerScreen(this, alternatives, alternative, index -> alternative = index))).bounds(x + 72, 132, w - 72, 20).build());
+            addRenderableWidget((target.isEmpty() ? HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.choose_item"), pick) : TaskItemButton.builder(target, pick)).bounds(x, 91, w, HomeLinkTheme.CONTROL_HEIGHT).build());
+            if (!alternatives.isEmpty()) addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.recipe_selection", alternative + 1, alternatives.size()), ignored -> minecraft.setScreen(new RecipePickerScreen(this, alternatives, alternative, index -> alternative = index))).bounds(x + 72, 132, w - 72, HomeLinkTheme.CONTROL_HEIGHT).build());
         }
-        addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks.cancel"), ignored -> onClose()).bounds(x, height - 26, half, 20).build());
-        submit = addRenderableWidget(TaskButton.primary(Component.translatable(existing == null ? "screen.homelink_tasks.create" : "screen.homelink_tasks.save_title"), ignored -> submit()).bounds(x + half + 6, height - 26, half, 20).build());
+        addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.cancel"), ignored -> onClose()).bounds(x, height - 26, half, HomeLinkTheme.CONTROL_HEIGHT).build());
+        submit = addRenderableWidget(HomeLinkButton.builder(Component.translatable(existing == null ? "screen.homelink_tasks.create" : "screen.homelink_tasks.save_title"), ignored -> submit()).bounds(x + half + 6, height - 26, half, HomeLinkTheme.CONTROL_HEIGHT).build());
         updateSubmit(); setInitialFocus(craft ? quantity : name);
     }
     private void selectItem(ItemStack item) { target = item.copyWithCount(1); alternatives = ClientRecipeLookup.alternatives(target); alternative = 0; }
@@ -72,14 +78,14 @@ public final class CardEditorScreen extends TaskScreen {
     }
     @Override public void renderContent(GuiGraphics g, int mx, int my, float delta) {
         renderBackground(g, mx, my, delta); int x = left(), w = wide();
-        g.drawString(font, Component.translatable(existing == null ? "screen.homelink_tasks.new_card" : "screen.homelink_tasks.save_title"), x, 33, TaskTheme.TEXT, false);
+        g.drawString(font, Component.translatable(existing == null ? "screen.homelink_tasks.new_card" : "screen.homelink_tasks.save_title"), x, 33, HomeLinkTheme.TEXT, false);
         boolean craft = existing == null && crafting;
-        g.drawString(font, Component.translatable(craft ? "screen.homelink_tasks.optional_title" : "screen.homelink_tasks.title"), x, craft ? 161 : 87, TaskTheme.TEXT_MUTED, false);
+        g.drawString(font, Component.translatable(craft ? "screen.homelink_tasks.optional_title" : "screen.homelink_tasks.title"), x, craft ? 161 : 87, HomeLinkTheme.MUTED, false);
         if (craft) {
-            g.drawString(font, Component.translatable("screen.homelink_tasks.object"), x, 79, TaskTheme.TEXT_MUTED, false);
-            g.drawString(font, Component.translatable("screen.homelink_tasks.quantity"), x, 120, TaskTheme.TEXT_MUTED, false);
-            if (height >= 280) g.drawWordWrap(font, Component.translatable("screen.homelink_tasks.creation_hint"), x, 202, w, TaskTheme.TEXT_MUTED);
-        } else g.drawWordWrap(font, Component.translatable("screen.homelink_tasks.manual_hint"), x, 134, w, TaskTheme.TEXT_MUTED);
+            g.drawString(font, Component.translatable("screen.homelink_tasks.object"), x, 79, HomeLinkTheme.MUTED, false);
+            g.drawString(font, Component.translatable("screen.homelink_tasks.quantity"), x, 120, HomeLinkTheme.MUTED, false);
+            if (height >= 280) g.drawWordWrap(font, Component.translatable("screen.homelink_tasks.creation_hint"), x, 202, w, HomeLinkTheme.MUTED);
+        } else g.drawWordWrap(font, Component.translatable("screen.homelink_tasks.manual_hint"), x, 134, w, HomeLinkTheme.MUTED);
         super.renderContent(g, mx, my, delta);
     }
     @Override public void onClose() { if (existing == null) BoardScreen.openOrRefresh(); else minecraft.setScreen(new CardDetailScreen(boardId, existing)); }

@@ -1,5 +1,7 @@
 package fr.lkdm.homelink.tasks.client;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphics;
@@ -20,18 +22,18 @@ public final class TaskMenuScreen extends TaskScreen {
         int w = Math.min(280, width - 32), x = (width - w) / 2;
         for (int i = scroll; i < Math.min(entries.size(), scroll + rows()); i++) {
             Entry entry = entries.get(i);
-            addRenderableWidget(TaskButton.builder(entry.label(), ignored -> { minecraft.setScreen(parent); entry.run().run(); }).bounds(x, 53 + (i - scroll) * 26, w, 22).build()).active = entry.active();
+            addRenderableWidget(HomeLinkButton.builder(entry.label(), ignored -> { minecraft.setScreen(parent); entry.run().run(); }).bounds(x, 53 + (i - scroll) * 26, w, HomeLinkTheme.CONTROL_HEIGHT).build()).active = entry.active();
         }
         boolean overflow = entries.size() > rows();
-        addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks.back"), ignored -> onClose()).bounds(x, height - 26, overflow ? w - 72 : w, 20).build());
+        addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.back"), ignored -> onClose()).bounds(x, height - 26, overflow ? w - 72 : w, HomeLinkTheme.CONTROL_HEIGHT).build());
         if (overflow) {
-            addRenderableWidget(TaskButton.builder(Component.literal("<"), ignored -> move(-1)).bounds(x + w - 66, height - 26, 30, 20).build()).active = scroll > 0;
-            addRenderableWidget(TaskButton.builder(Component.literal(">"), ignored -> move(1)).bounds(x + w - 30, height - 26, 30, 20).build()).active = scroll + rows() < entries.size();
+            addRenderableWidget(HomeLinkButton.builder(Component.literal("<"), ignored -> move(-1)).bounds(x + w - 66, height - 26, 30, HomeLinkTheme.CONTROL_HEIGHT).build()).active = scroll > 0;
+            addRenderableWidget(HomeLinkButton.builder(Component.literal(">"), ignored -> move(1)).bounds(x + w - 30, height - 26, 30, HomeLinkTheme.CONTROL_HEIGHT).build()).active = scroll + rows() < entries.size();
         }
     }
     @Override public void renderContent(GuiGraphics g, int mx, int my, float delta) {
         renderBackground(g, mx, my, delta);
-        g.drawString(font, title, (width - Math.min(280, width - 32)) / 2, 33, TaskTheme.TEXT, false);
+        g.drawString(font, title, (width - Math.min(280, width - 32)) / 2, 33, HomeLinkTheme.TEXT, false);
         super.renderContent(g, mx, my, delta);
     }
     private void move(int step) { scroll = Math.clamp(scroll + step, 0, Math.max(0, entries.size() - rows())); clearWidgets(); initContent(); }

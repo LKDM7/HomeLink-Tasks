@@ -1,5 +1,8 @@
 package fr.lkdm.homelink.tasks.client;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
 import fr.lkdm.homelink.tasks.network.CardView;
 import fr.lkdm.homelink.tasks.network.MemberPackets;
 import fr.lkdm.homelink.tasks.network.TaskPackets;
@@ -31,7 +34,13 @@ public final class CardActionsScreen extends TaskScreen {
         int x = left(), w = wide(), third = (w - 8) / 3, half = (w - 6) / 2;
         boolean editor = ClientTaskState.board().map(b -> b.viewerRole().atLeast(fr.lkdm.homelink.tasks.board.BoardRole.EDITOR)).orElse(false);
         String[] tabs = {"details", "team", "advanced"};
-        for (int i = 0; i < tabs.length; i++) { int tab = i; addRenderableWidget(TaskButton.tab(Component.translatable("screen.homelink_tasks." + tabs[i]), ignored -> { keepDraft(); section = tab; dataChanged(); }, section == i).bounds(x + i * (third + 4), 51, third, 20).build()); }
+        for (int i = 0; i < tabs.length; i++) {
+            int tab = i;
+            addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks." + tabs[i]),
+                    ignored -> { keepDraft(); section = tab; dataChanged(); })
+                    .bounds(x + i * (third + 4), 51, third, HomeLinkTheme.CONTROL_HEIGHT)
+                    .build().navigation(section == i)).active = section != i;
+        }
         if (section == 0) {
             name = new EditBox(font, x, 91, w, 20, Component.translatable("screen.homelink_tasks.title"));
             name.setMaxLength(80); name.setValue(draftName == null ? view.title() : draftName); name.setEditable(editor); addRenderableWidget(name);
@@ -39,7 +48,7 @@ public final class CardActionsScreen extends TaskScreen {
             description.setMaxLength(2000); description.setValue(draftDescription == null ? view.description() : draftDescription); description.setEditable(editor); addRenderableWidget(description);
             var priority = button("priority", x, 166, w, () -> { var values = fr.lkdm.homelink.tasks.task.TaskPriority.values(); TaskClientNetwork.priority(board, card, values[(card().priority().ordinal() + 1) % values.length]); });
             priority.setMessage(Component.translatable("screen.homelink_tasks.priority_value", Component.translatable("priority.homelink_tasks." + view.priority().name().toLowerCase(java.util.Locale.ROOT)))); priority.active = editor;
-            var save = addRenderableWidget(TaskButton.primary(Component.translatable("screen.homelink_tasks.save"), ignored -> save()).bounds(x + half + 6, height - 26, half, 20).build());
+            var save = addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.save"), ignored -> save()).bounds(x + half + 6, height - 26, half, HomeLinkTheme.CONTROL_HEIGHT).build());
             save.active = editor && !name.getValue().isBlank();
             name.setResponder(value -> save.active = editor && !value.isBlank() && savePending == null);
         } else if (section == 1) {
@@ -77,7 +86,7 @@ public final class CardActionsScreen extends TaskScreen {
     private void change(TaskPackets.CardCommand command, String text, boolean flag) { TaskClientNetwork.card(command, board, card, text, flag); }
     private void assign(TaskPackets.CardCommand command) { var list = members(); if (!list.isEmpty()) TaskClientNetwork.assignment(command, board, card, list.get(Math.floorMod(member, list.size()))); }
     private void link(TaskPackets.CardCommand command) { var list = relations(); if (!list.isEmpty()) TaskClientNetwork.link(command, board, card, list.get(Math.floorMod(relation, list.size())).id()); }
-    private net.minecraft.client.gui.components.Button button(String key, int x, int y, int w, Runnable run) { return addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks." + key), ignored -> run.run()).bounds(x, y, w, 20).build()); }
+    private net.minecraft.client.gui.components.Button button(String key, int x, int y, int w, Runnable run) { return addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks." + key), ignored -> run.run()).bounds(x, y, w, HomeLinkTheme.CONTROL_HEIGHT).build()); }
     @Override public void dataChanged() {
         if (savePending != null && card() != null && card().title().equals(draftName)) { String text = savePending; savePending = null; change(TaskPackets.CardCommand.DESCRIBE, text, false); minecraft.setScreen(new CardDetailScreen(board, card)); return; }
         keepDraft(); clearWidgets(); initContent();
@@ -85,10 +94,10 @@ public final class CardActionsScreen extends TaskScreen {
     @Override public void onClose() { if (section == 3) { section = 2; dataChanged(); } else minecraft.setScreen(new CardDetailScreen(board, card)); }
     @Override public void renderContent(GuiGraphics g, int mx, int my, float delta) {
         renderBackground(g, mx, my, delta); int x = left(), w = wide();
-        g.drawString(font, Component.translatable(section == 3 ? "screen.homelink_tasks.relationships" : "screen.homelink_tasks.edit_card"), x, 33, TaskTheme.TEXT, false);
-        if (section == 0) { g.drawString(font, Component.translatable("screen.homelink_tasks.title"), x, 79, TaskTheme.TEXT_MUTED, false); g.drawString(font, Component.translatable("screen.homelink_tasks.description"), x, 120, TaskTheme.TEXT_MUTED, false); }
-        if (section == 1 && !members().isEmpty()) g.drawString(font, TaskTheme.clip(font, ClientTaskState.playerName(members().get(Math.floorMod(member, members().size()))), w - 76), x + 36, 127, TaskTheme.TEXT, false);
-        if (section == 3 && !relations().isEmpty()) g.drawString(font, TaskTheme.clip(font, relations().get(Math.floorMod(relation, relations().size())).title(), w - 76), x + 36, 84, TaskTheme.TEXT, false);
+        g.drawString(font, Component.translatable(section == 3 ? "screen.homelink_tasks.relationships" : "screen.homelink_tasks.edit_card"), x, 33, HomeLinkTheme.TEXT, false);
+        if (section == 0) { g.drawString(font, Component.translatable("screen.homelink_tasks.title"), x, 79, HomeLinkTheme.MUTED, false); g.drawString(font, Component.translatable("screen.homelink_tasks.description"), x, 120, HomeLinkTheme.MUTED, false); }
+        if (section == 1 && !members().isEmpty()) g.drawString(font, HomeLinkUi.clip(font, ClientTaskState.playerName(members().get(Math.floorMod(member, members().size()))), w - 76), x + 36, 127, HomeLinkTheme.TEXT, false);
+        if (section == 3 && !relations().isEmpty()) g.drawString(font, HomeLinkUi.clip(font, relations().get(Math.floorMod(relation, relations().size())).title(), w - 76), x + 36, 84, HomeLinkTheme.TEXT, false);
         super.renderContent(g, mx, my, delta);
     }
 }

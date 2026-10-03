@@ -1,5 +1,7 @@
 package fr.lkdm.homelink.tasks.client;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import fr.lkdm.homelink.tasks.block.TaskDisplayBlock;
@@ -41,34 +43,34 @@ public final class TaskDisplayRenderer implements BlockEntityRenderer<TaskDispla
         pose.mulPose(Axis.YP.rotationDegrees(-screen.getBlockState().getValue(TaskDisplayBlock.FACING).toYRot()));
         pose.translate(-0.45, size.height() - 0.675, -0.3048);
         pose.scale(1 / 160F, -1 / 160F, 1 / 160F);
-        fill(pose, buffers, 0, 0, width, height, TaskTheme.SURFACE, 0);
-        fill(pose, buffers, 0, 0, width, 19, TaskTheme.PANEL);
-        fill(pose, buffers, 0, 19, width, 20, TaskTheme.COPPER);
-        text(pose, buffers, "HOMELINK / TASKS", 6, 6, TaskTheme.COPPER);
+        fill(pose, buffers, 0, 0, width, height, HomeLinkTheme.SURFACE, 0);
+        fill(pose, buffers, 0, 0, width, 19, HomeLinkTheme.HEADER);
+        fill(pose, buffers, 0, 19, width, 20, HomeLinkTheme.ACCENT);
+        text(pose, buffers, "HOMELINK / TASKS", 6, 6, HomeLinkTheme.ACCENT);
         var view = DisplayClientState.view(screen.getBlockPos()).orElse(null);
         if (view == null) {
             String key = DisplayClientState.state(screen.getBlockPos()).name().toLowerCase(java.util.Locale.ROOT);
-            text(pose, buffers, TaskTheme.clip(font, Component.translatable("display.homelink_tasks." + key).getString(), width - 12), 6, 30, TaskTheme.TEXT);
-            text(pose, buffers, TaskTheme.clip(font, Component.translatable("display.homelink_tasks.open").getString(), width - 12), 6, 44, TaskTheme.TEXT_MUTED);
+            text(pose, buffers, HomeLinkUi.clip(font, Component.translatable("display.homelink_tasks." + key).getString(), width - 12), 6, 30, HomeLinkTheme.TEXT);
+            text(pose, buffers, HomeLinkUi.clip(font, Component.translatable("display.homelink_tasks.open").getString(), width - 12), 6, 44, HomeLinkTheme.MUTED);
         } else {
-            text(pose, buffers, TaskTheme.clip(font, view.title(), width - 12), 6, 26, TaskTheme.TEXT);
-            text(pose, buffers, view.done() + " / " + view.total(), 6, 40, TaskTheme.TEXT_MUTED);
+            text(pose, buffers, HomeLinkUi.clip(font, view.title(), width - 12), 6, 26, HomeLinkTheme.TEXT);
+            text(pose, buffers, view.done() + " / " + view.total(), 6, 40, HomeLinkTheme.MUTED);
             int availableWidth = width - 46;
-            fill(pose, buffers, 40, 42, width - 6, 45, TaskTheme.PANEL);
-            if (view.total() > 0) fill(pose, buffers, 40, 42, 40 + availableWidth * view.done() / view.total(), 45, TaskTheme.COPPER, 0.2F);
+            fill(pose, buffers, 40, 42, width - 6, 45, HomeLinkTheme.HEADER);
+            if (view.total() > 0) fill(pose, buffers, 40, 42, 40 + availableWidth * view.done() / view.total(), 45, HomeLinkTheme.ACCENT, 0.2F);
             int rows = Math.min(view.cards().size(), (height - 66) / 21);
             for (int index = 0; index < rows; index++) {
                 DisplayPackets.Card card = view.cards().get(index);
                 int y = 55 + index * 21;
-                fill(pose, buffers, 5, y - 2, width - 5, y + 17, TaskTheme.ANTHRACITE);
+                fill(pose, buffers, 5, y - 2, width - 5, y + 17, HomeLinkTheme.BACKGROUND);
                 text(pose, buffers, card.status() == TaskStatus.DONE ? "+" : card.status() == TaskStatus.IN_PROGRESS ? ">" : "-",
-                        8, y, TaskTheme.COPPER);
-                text(pose, buffers, TaskTheme.clip(font, card.title(), width - 24), 18, y, TaskTheme.TEXT);
+                        8, y, HomeLinkTheme.ACCENT);
+                text(pose, buffers, HomeLinkUi.clip(font, card.title(), width - 24), 18, y, HomeLinkTheme.TEXT);
                 String status = Component.translatable("column.homelink_tasks." + card.status().name().toLowerCase(java.util.Locale.ROOT)).getString();
-                text(pose, buffers, card.target() == 0 ? status : card.completed() + " / " + card.target(), 18, y + 10, TaskTheme.TEXT_MUTED);
+                text(pose, buffers, card.target() == 0 ? status : card.completed() + " / " + card.target(), 18, y + 10, HomeLinkTheme.MUTED);
             }
-            if (rows == 0) text(pose, buffers, TaskTheme.clip(font, Component.translatable("screen.homelink_tasks.empty_column").getString(), width - 12), 6, 58, TaskTheme.TEXT_MUTED);
-            text(pose, buffers, Component.translatable("display.homelink_tasks.live").getString(), 6, height - 10, TaskTheme.COPPER);
+            if (rows == 0) text(pose, buffers, HomeLinkUi.clip(font, Component.translatable("screen.homelink_tasks.empty_column").getString(), width - 12), 6, 58, HomeLinkTheme.MUTED);
+            text(pose, buffers, Component.translatable("display.homelink_tasks.live").getString(), 6, height - 10, HomeLinkTheme.ACCENT);
         }
         pose.popPose();
     }

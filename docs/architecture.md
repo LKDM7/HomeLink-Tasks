@@ -32,6 +32,17 @@ client       ClientTaskState, BoardScreen, MindMapScreen, CardDetailScreen,
 Les calculs de recettes, d'allocation, de permissions et de transitions sont testables
 sans renderer : aucun d'eux n'a besoin d'un `Screen`, d'un monde ou d'un client.
 
+Les écrans utilisent le kit public `fr.lkdm.homecore.api.client.ui` de HomeCore
+1.14.0 / API 1.9.0 pour leur palette, cadre, panneaux, boutons et disposition.
+`TaskAvailabilityStyle` porte uniquement les couleurs et labels métier ;
+`TaskItemButton` étend le bouton partagé pour ajouter une icône. Ces classes
+restent dans le package client. Aucun type du kit UI n’entre dans les contrats
+serveur, les paquets réseau ou les calculs de stock.
+
+The public HomeCore client UI kit supplies the shared shell and controls.
+Tasks retains semantic availability styling and item-button content locally;
+server contracts and domain calculations never reference client UI classes.
+
 ## Le chemin d'une fabrication
 
 ```

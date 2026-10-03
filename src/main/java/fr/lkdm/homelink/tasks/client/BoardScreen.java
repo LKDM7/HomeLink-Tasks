@@ -1,5 +1,8 @@
 package fr.lkdm.homelink.tasks.client;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
 import fr.lkdm.homelink.tasks.board.BoardRole;
 import fr.lkdm.homelink.tasks.network.BoardView;
 import fr.lkdm.homelink.tasks.network.CardView;
@@ -69,13 +72,13 @@ public final class BoardScreen extends TaskScreen {
         rebuild();
         Optional<BoardView> board = ClientTaskState.board();
         int addWidth = Math.min(140, (width - 80) / 2);
-        addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks.boards"),
-                button -> minecraft.setScreen(new BoardListScreen())).bounds(10, 30, 82, 22).build());
+        addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.boards"),
+                button -> minecraft.setScreen(new BoardListScreen())).bounds(10, 30, 82, HomeLinkTheme.CONTROL_HEIGHT).build());
         if (board.isPresent() && board.get().viewerRole().atLeast(BoardRole.EDITOR))
-            addRenderableWidget(TaskButton.primary(Component.translatable("screen.homelink_tasks.new_card"),
+            addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.new_card"),
                     button -> minecraft.setScreen(new CardEditorScreen(board.get().id(), null)))
-                    .bounds(width - addWidth - 46, 30, addWidth, 22).build());
-        addRenderableWidget(TaskButton.builder(Component.literal("..."), button -> {
+                    .bounds(width - addWidth - 46, 30, addWidth, HomeLinkTheme.CONTROL_HEIGHT).build());
+        addRenderableWidget(HomeLinkButton.builder(Component.literal("..."), button -> {
             TaskMenuScreen menu = new TaskMenuScreen(this);
             board.ifPresent(open -> {
                 menu.action("manage", () -> minecraft.setScreen(new BoardSettingsScreen(open.id())));
@@ -85,13 +88,14 @@ public final class BoardScreen extends TaskScreen {
                         TaskPackets.BoardCommand.SELECT_DISPLAY, open.id(), "", null, open.viewerRole(), false, open.revision()));
             });
             minecraft.setScreen(menu);
-        }).bounds(width - 40, 30, 30, 22).build()).setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("screen.homelink_tasks.more")));
+        }).bounds(width - 40, 30, 30, HomeLinkTheme.CONTROL_HEIGHT).build()).setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("screen.homelink_tasks.more")));
         if (compact()) for (TaskStatus status : TaskStatus.values()) {
             long count = board.map(open -> open.cards().stream().filter(card -> !card.archived() && card.status() == status).count()).orElse(0L);
             int w = (width - 28) / 3;
-            addRenderableWidget(TaskButton.tab(Component.translatable("column.homelink_tasks." + status.name().toLowerCase(java.util.Locale.ROOT)).append(" (" + count + ")"), ignored -> {
+            addRenderableWidget(HomeLinkButton.builder(Component.translatable("column.homelink_tasks." + status.name().toLowerCase(java.util.Locale.ROOT)).append(" (" + count + ")"), ignored -> {
                 compactStatus = status; dataChanged();
-            }, compactStatus == status).bounds(10 + status.ordinal() * (w + 4), 74, w, 20).build());
+            }).bounds(10 + status.ordinal() * (w + 4), 74, w, HomeLinkTheme.CONTROL_HEIGHT)
+                    .build().navigation(compactStatus == status)).active = compactStatus != status;
         }
     }
     /**
@@ -124,18 +128,18 @@ public final class BoardScreen extends TaskScreen {
         Optional<BoardView> board = ClientTaskState.board();
         if (board.isEmpty()) {
             graphics.drawCenteredString(font, Component.translatable("screen.homelink_tasks.empty_board"),
-                    width / 2, height / 2, TaskTheme.TEXT_MUTED);
+                    width / 2, height / 2, HomeLinkTheme.MUTED);
             super.renderContent(graphics, mouseX, mouseY, partialTick);
             return;
         }
-        graphics.drawString(font, TaskTheme.clip(font, board.get().title(), width - 20), 10, 59, TaskTheme.TEXT, false);
+        graphics.drawString(font, HomeLinkUi.clip(font, board.get().title(), width - 20), 10, 59, HomeLinkTheme.TEXT, false);
         for (Column column : columns) renderColumn(graphics, column, mouseX, mouseY);
         if (dragging && dragged != null) {
             ClientTaskState.card(dragged).ifPresent(card ->
                     renderCard(graphics, card, dragX - 40, dragY - CARD_HEIGHT / 2, 100, true));
         }
-        graphics.drawString(font, TaskTheme.clip(font, Component.translatable("screen.homelink_tasks.move_hint").getString(), width - 20),
-                10, height - 18, TaskTheme.TEXT_MUTED, false);
+        graphics.drawString(font, HomeLinkUi.clip(font, Component.translatable("screen.homelink_tasks.move_hint").getString(), width - 20),
+                10, height - 18, HomeLinkTheme.MUTED, false);
         super.renderContent(graphics, mouseX, mouseY, partialTick);
         if (!dragging) hit(mouseX, mouseY).ifPresent(hit -> {
             if (trashHit(hit, mouseX, mouseY))
@@ -149,13 +153,13 @@ public final class BoardScreen extends TaskScreen {
     private void renderColumn(GuiGraphics graphics, Column column, int mouseX, int mouseY) {
         int top = header();
         int bottom = height - FOOTER;
-        TaskTheme.panel(graphics, column.x, top, column.width, bottom - top);
-        graphics.fill(column.x, top, column.x + column.width, top + 1, TaskTheme.STEEL);
+        HomeLinkUi.panel(graphics, column.x, top, column.width, bottom - top);
+        graphics.fill(column.x, top, column.x + column.width, top + 1, HomeLinkTheme.LINE);
         Component title = Component.translatable("column.homelink_tasks."
                 + column.status.name().toLowerCase(java.util.Locale.ROOT));
         if (!compact()) {
-            graphics.drawString(font, title, column.x + 6, top - 12, TaskTheme.TEXT, false);
-            graphics.drawString(font, Integer.toString(column.cards.size()), column.x + column.width - 14, top - 12, TaskTheme.TEXT_MUTED, false);
+            graphics.drawString(font, title, column.x + 6, top - 12, HomeLinkTheme.TEXT, false);
+            graphics.drawString(font, Integer.toString(column.cards.size()), column.x + column.width - 14, top - 12, HomeLinkTheme.MUTED, false);
         }
         int y = top + 4;
         int start = Math.clamp(scrolls.getOrDefault(column.status, 0), 0, Math.max(0, column.cards.size() - visibleRows()));
@@ -171,21 +175,21 @@ public final class BoardScreen extends TaskScreen {
         }
         if (column.cards.size() > visibleRows()) {
             graphics.drawString(font, (start + 1) + " / " + column.cards.size(), column.x + 4, bottom - 10,
-                    TaskTheme.TEXT_MUTED, false);
+                    HomeLinkTheme.MUTED, false);
         }
         if (column.cards.isEmpty()) {
-            graphics.drawString(font, TaskTheme.clip(font, Component.translatable("screen.homelink_tasks.empty_column").getString(), column.width - 12),
-                    column.x + 6, top + 10, TaskTheme.TEXT_MUTED, false);
+            graphics.drawString(font, HomeLinkUi.clip(font, Component.translatable("screen.homelink_tasks.empty_column").getString(), column.width - 12),
+                    column.x + 6, top + 10, HomeLinkTheme.MUTED, false);
         }
     }
 
     private void renderCard(GuiGraphics graphics, CardView card, int x, int y, int cardWidth, boolean hovered) {
-        graphics.fill(x, y, x + cardWidth, y + CARD_HEIGHT, hovered ? TaskTheme.SURFACE_HOVER : TaskTheme.PANEL);
+        graphics.fill(x, y, x + cardWidth, y + CARD_HEIGHT, hovered ? HomeLinkTheme.HOVER : HomeLinkTheme.HEADER);
         int accent = switch (card.priority()) {
-            case URGENT -> TaskTheme.MISSING;
-            case HIGH -> TaskTheme.COPPER;
-            case NORMAL -> TaskTheme.STEEL;
-            case LOW -> TaskTheme.TEXT_MUTED;
+            case URGENT -> TaskAvailabilityStyle.MISSING;
+            case HIGH -> HomeLinkTheme.ACCENT;
+            case NORMAL -> HomeLinkTheme.LINE;
+            case LOW -> HomeLinkTheme.MUTED;
         };
         graphics.fill(x, y, x + 2, y + CARD_HEIGHT, accent);
         int textX = x + 6;
@@ -193,48 +197,48 @@ public final class BoardScreen extends TaskScreen {
             graphics.renderItem(card.objective().get().target(), x + 5, y + 4);
             textX = x + 25;
         }
-        graphics.drawString(font, TaskTheme.clip(font, card.title(), cardWidth - (textX - x) - 16),
-                textX, y + 5, TaskTheme.TEXT, false);
+        graphics.drawString(font, HomeLinkUi.clip(font, card.title(), cardWidth - (textX - x) - 16),
+                textX, y + 5, HomeLinkTheme.TEXT, false);
         // The star is personal: it pins for this player only and changes no allocation.
         boolean isPinned = ClientTaskState.pinned().stream().anyMatch(view -> view.card().equals(card.id()));
         graphics.drawString(font, isPinned ? "★" : "☆",
-                x + cardWidth - 12, y + 5, isPinned ? TaskTheme.COPPER : TaskTheme.TEXT_MUTED, false);
+                x + cardWidth - 12, y + 5, isPinned ? HomeLinkTheme.ACCENT : HomeLinkTheme.MUTED, false);
         renderSubtitle(graphics, card, textX, y + 18, cardWidth - (textX - x) - (canDeleteCompleted(card) ? 22 : 6));
         if (canDeleteCompleted(card)) {
             int tx = x + cardWidth - 15, ty = y + 24;
-            graphics.fill(tx + 3, ty, tx + 7, ty + 1, TaskTheme.MISSING);
-            graphics.fill(tx + 1, ty + 2, tx + 9, ty + 3, TaskTheme.MISSING);
-            graphics.fill(tx + 2, ty + 4, tx + 8, ty + 11, TaskTheme.MISSING);
-            graphics.fill(tx + 3, ty + 5, tx + 4, ty + 9, TaskTheme.SURFACE);
-            graphics.fill(tx + 6, ty + 5, tx + 7, ty + 9, TaskTheme.SURFACE);
+            graphics.fill(tx + 3, ty, tx + 7, ty + 1, TaskAvailabilityStyle.MISSING);
+            graphics.fill(tx + 1, ty + 2, tx + 9, ty + 3, TaskAvailabilityStyle.MISSING);
+            graphics.fill(tx + 2, ty + 4, tx + 8, ty + 11, TaskAvailabilityStyle.MISSING);
+            graphics.fill(tx + 3, ty + 5, tx + 4, ty + 9, HomeLinkTheme.SURFACE);
+            graphics.fill(tx + 6, ty + 5, tx + 7, ty + 9, HomeLinkTheme.SURFACE);
         }
         if (card.objective().isPresent()) {
             var objective = card.objective().get();
             int barWidth = cardWidth - 12;
-            graphics.fill(x + 6, y + 43, x + 6 + barWidth, y + 46, TaskTheme.SURFACE);
-            graphics.fill(x + 6, y + 43, x + 6 + (int)(barWidth * Math.min(1.0, (double)objective.completedQuantity() / Math.max(1, objective.targetQuantity()))), y + 46, TaskTheme.COPPER);
+            HomeLinkUi.progressBar(graphics, x + 6, y + 43, barWidth, 3,
+                    (double) objective.completedQuantity() / Math.max(1, objective.targetQuantity()), HomeLinkTheme.ACCENT);
         }
     }
     private void renderSubtitle(GuiGraphics graphics, CardView card, int x, int y, int available) {
         if (card.type() == TaskType.CRAFT && card.objective().isPresent()) {
             var objective = card.objective().get();
             String progress = objective.completedQuantity() + " / " + objective.targetQuantity();
-            graphics.drawString(font, progress, x, y, TaskTheme.TEXT_MUTED, false);
+            graphics.drawString(font, progress, x, y, HomeLinkTheme.MUTED, false);
             Optional<PlanView> plan = ClientTaskState.plan(card.id());
             if (objective.remaining() == 0) {
-                graphics.drawString(font, Component.translatable("screen.homelink_tasks.plan_finished"), x, y + 10, TaskTheme.TEXT_MUTED, false);
+                graphics.drawString(font, Component.translatable("screen.homelink_tasks.plan_finished"), x, y + 10, HomeLinkTheme.MUTED, false);
             } else if (plan.isPresent()) {
-                int colour = TaskTheme.colour(plan.get().state());
-                String summary = TaskTheme.symbol(plan.get().state()) + " "
-                        + TaskTheme.label(plan.get().state(), plan.get().storageConfigured()).getString();
-                graphics.drawString(font, TaskTheme.clip(font, summary, Math.max(0, available)),
+                int colour = TaskAvailabilityStyle.colour(plan.get().state());
+                String summary = TaskAvailabilityStyle.symbol(plan.get().state()) + " "
+                        + TaskAvailabilityStyle.label(plan.get().state(), plan.get().storageConfigured()).getString();
+                graphics.drawString(font, HomeLinkUi.clip(font, summary, Math.max(0, available)),
                         x, y + 10, colour, false);
             }
             return;
         }
         if (!card.assignees().isEmpty()) {
             graphics.drawString(font, Component.translatable("screen.homelink_tasks.assignees",
-                    card.assignees().size()), x, y, TaskTheme.TEXT_MUTED, false);
+                    card.assignees().size()), x, y, HomeLinkTheme.MUTED, false);
         }
     }
 

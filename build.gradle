@@ -345,11 +345,15 @@ def verifyReleaseJar = tasks.register('verifyReleaseJar') {
 tasks.named('check') { dependsOn verifyReleaseJar }
 
 def inGameDir = layout.buildDirectory.dir('validation/in-game')
+def guiReviewLanguage = providers.gradleProperty('guiReviewLanguage').getOrElse('fr_fr')
+if (!(guiReviewLanguage in ['fr_fr', 'en_us'])) {
+    throw new GradleException('guiReviewLanguage must be fr_fr or en_us.')
+}
 tasks.named('runInGame') {
     doFirst {
         def options = new File(inGameDir.get().asFile, 'options.txt')
         options.parentFile.mkdirs()
-        options.setText('onboardAccessibility:false\npauseOnLostFocus:false\nrenderDistance:2\nsimulationDistance:5\nmaxFps:60\ntutorialStep:none\nguiScale:2\nsoundCategory_music:0.0\nlang:fr_fr\n', 'UTF-8')
+        options.setText('onboardAccessibility:false\npauseOnLostFocus:false\nrenderDistance:2\nsimulationDistance:5\nmaxFps:60\ntutorialStep:none\nguiScale:2\nsoundCategory_music:0.0\nlang:' + guiReviewLanguage + '\n', 'UTF-8')
     }
     doLast {
         def report = new File(inGameDir.get().asFile, 'logs/latest.log').getText('UTF-8')

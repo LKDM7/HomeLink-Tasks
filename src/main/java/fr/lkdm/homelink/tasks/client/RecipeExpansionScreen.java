@@ -1,5 +1,8 @@
 package fr.lkdm.homelink.tasks.client;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
 import fr.lkdm.homecore.api.recipe.RecipeDescriptor;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,17 +50,17 @@ public final class RecipeExpansionScreen extends TaskScreen {
 
     @Override protected void initContent() {
         int left = left(), wide = wide();
-        addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks.previous"), ignored -> { selected--; scroll = 0; })
-                .bounds(left, 50, 28, 20).build()).active = choices.size() > 1;
-        addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks.next"), ignored -> { selected++; scroll = 0; })
-                .bounds(left + wide - 28, 50, 28, 20).build()).active = choices.size() > 1;
-        addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks.back"), ignored -> onClose())
-                .bounds(left, height - 26, 64, 20).build());
-        var confirm = addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks.create_component"), ignored -> {
+        addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.previous"), ignored -> { selected--; scroll = 0; })
+                .bounds(left, 50, 28, HomeLinkTheme.CONTROL_HEIGHT).build()).active = choices.size() > 1;
+        addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.next"), ignored -> { selected++; scroll = 0; })
+                .bounds(left + wide - 28, 50, 28, HomeLinkTheme.CONTROL_HEIGHT).build()).active = choices.size() > 1;
+        addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.back"), ignored -> onClose())
+                .bounds(left, height - 26, 64, HomeLinkTheme.CONTROL_HEIGHT).build());
+        var confirm = addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.create_component"), ignored -> {
             var choice = choices.get(Math.floorMod(selected, choices.size()));
             TaskClientNetwork.expand(board, card, ingredient, choice.variant(), choice.recipe().recipeId(), revision);
             minecraft.setScreen(parentScreen);
-        }).bounds(left + 70, height - 26, wide - 70, 20).build());
+        }).bounds(left + 70, height - 26, wide - 70, HomeLinkTheme.CONTROL_HEIGHT).build());
         confirm.active = !choices.isEmpty() && needed > 0 && needed <= fr.lkdm.homelink.tasks.objective.CraftObjective.MAX_QUANTITY
                 && ClientCardPermissions.editor();
         confirm.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("screen.homelink_tasks.expand_confirm")));
@@ -65,17 +68,17 @@ public final class RecipeExpansionScreen extends TaskScreen {
 
     @Override public void renderContent(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         renderBackground(graphics, mouseX, mouseY, partialTick); int left = left(), wide = wide();
-        graphics.drawString(font, title, left, 32, TaskTheme.TEXT, false);
+        graphics.drawString(font, title, left, 32, HomeLinkTheme.TEXT, false);
         if (choices.isEmpty()) {
-            graphics.drawString(font, Component.translatable("screen.homelink_tasks.no_component_recipe"), left, 84, TaskTheme.TEXT_MUTED, false);
+            graphics.drawString(font, Component.translatable("screen.homelink_tasks.no_component_recipe"), left, 84, HomeLinkTheme.MUTED, false);
         } else {
             var choice = choices.get(Math.floorMod(selected, choices.size()));
-            graphics.drawString(font, TaskTheme.clip(font, Component.translatable("screen.homelink_tasks.recipe_selection", Math.floorMod(selected, choices.size()) + 1, choices.size()).getString(), wide - 68), left + 34, 56, TaskTheme.COPPER, false);
+            graphics.drawString(font, HomeLinkUi.clip(font, Component.translatable("screen.homelink_tasks.recipe_selection", Math.floorMod(selected, choices.size()) + 1, choices.size()).getString(), wide - 68), left + 34, 56, HomeLinkTheme.ACCENT, false);
             graphics.renderItem(choice.variant(), left, 78);
-            graphics.drawString(font, TaskTheme.clip(font, needed + " × " + choice.variant().getHoverName().getString(), wide - 26), left + 24, 82, TaskTheme.TEXT, false);
+            graphics.drawString(font, HomeLinkUi.clip(font, needed + " × " + choice.variant().getHoverName().getString(), wide - 26), left + 24, 82, HomeLinkTheme.TEXT, false);
             int operations = needed > Integer.MAX_VALUE ? 0 : choice.recipe().operationsFor((int) needed);
-            graphics.drawString(font, TaskTheme.clip(font, Component.translatable("screen.homelink_tasks.operations", operations,
-                    choice.recipe().outputPerOperation()).getString(), wide), left, 100, TaskTheme.TEXT_MUTED, false);
+            graphics.drawString(font, HomeLinkUi.clip(font, Component.translatable("screen.homelink_tasks.operations", operations,
+                    choice.recipe().outputPerOperation()).getString(), wide), left, 100, HomeLinkTheme.MUTED, false);
             scroll = Math.clamp(scroll, 0, Math.max(0, choice.recipe().ingredients().size() - rows()));
             for (int index = scroll; index < Math.min(choice.recipe().ingredients().size(), scroll + rows()); index++) {
                 int y = 116 + (index - scroll) * 18;
@@ -83,10 +86,10 @@ public final class RecipeExpansionScreen extends TaskScreen {
                 if (variants.length == 0) continue;
                 var display = variants[(int) (System.currentTimeMillis() / 1800 % variants.length)];
                 graphics.renderItem(display, left, y);
-                graphics.drawString(font, TaskTheme.clip(font, (long) operations * requirement.count() + " × " + display.getHoverName().getString(), wide - 26), left + 24, y + 4, TaskTheme.TEXT_MUTED, false);
+                graphics.drawString(font, HomeLinkUi.clip(font, (long) operations * requirement.count() + " × " + display.getHoverName().getString(), wide - 26), left + 24, y + 4, HomeLinkTheme.MUTED, false);
                 if (mouseX >= left && mouseX < left + 20 && mouseY >= y && mouseY < y + 18) graphics.renderTooltip(font, display, mouseX, mouseY);
             }
-            if (partial) graphics.drawString(font, TaskTheme.clip(font, Component.translatable("screen.homelink_tasks.component_choices_partial").getString(), wide), left, height - 44, TaskTheme.IN_STORAGE, false);
+            if (partial) graphics.drawString(font, HomeLinkUi.clip(font, Component.translatable("screen.homelink_tasks.component_choices_partial").getString(), wide), left, height - 44, TaskAvailabilityStyle.IN_STORAGE, false);
         }
         super.renderContent(graphics, mouseX, mouseY, partialTick);
     }

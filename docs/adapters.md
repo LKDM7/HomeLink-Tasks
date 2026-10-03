@@ -1,7 +1,7 @@
 # Contrat des adaptateurs
 
 HomeLink Tasks ne réimplémente ni HomeCore ni Storage. Il consomme trois contrats publics
-et neutres portés par HomeCore **1.12.0** (API publique **1.8.0**), et n'importe aucune
+et neutres portés par HomeCore **1.14.0** (API publique **1.9.0**), et n'importe aucune
 classe interne de Storage : ni `StorageIndex`, ni `StorageBlockEntity`, ni leurs
 inventaires.
 

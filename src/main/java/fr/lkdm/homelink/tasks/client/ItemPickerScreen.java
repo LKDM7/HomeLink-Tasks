@@ -1,5 +1,7 @@
 package fr.lkdm.homelink.tasks.client;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
 import java.text.Normalizer;
 import java.util.List;
 import java.util.Locale;
@@ -47,14 +49,14 @@ public final class ItemPickerScreen extends TaskScreen {
         for (int i = start; i < Math.min(matches.size(), start + rows()); i++) {
             ItemStack item = matches.get(i);
             int y = 81 + (i - start) * 28;
-            addRenderableWidget(TaskButton.item(item, ignored -> {
+            addRenderableWidget(TaskItemButton.builder(item, ignored -> {
                 select.accept(item.copy()); minecraft.setScreen(parent);
-            }).bounds(x, y, w, 24).build());
+            }).bounds(x, y, w, HomeLinkTheme.CONTROL_HEIGHT).build());
         }
         int bottom = height - 26;
-        addRenderableWidget(TaskButton.builder(Component.translatable("screen.homelink_tasks.back"), ignored -> onClose()).bounds(x, bottom, w - 112, 20).build());
-        addRenderableWidget(TaskButton.builder(Component.literal("<"), ignored -> { page--; rebuild(); }).bounds(x + w - 104, bottom, 48, 20).build()).active = page > 0;
-        addRenderableWidget(TaskButton.builder(Component.literal(">"), ignored -> { page++; rebuild(); }).bounds(x + w - 48, bottom, 48, 20).build()).active = start + rows() < matches.size();
+        addRenderableWidget(HomeLinkButton.builder(Component.translatable("screen.homelink_tasks.back"), ignored -> onClose()).bounds(x, bottom, w - 112, HomeLinkTheme.CONTROL_HEIGHT).build());
+        addRenderableWidget(HomeLinkButton.builder(Component.literal("<"), ignored -> { page--; rebuild(); }).bounds(x + w - 104, bottom, 48, HomeLinkTheme.CONTROL_HEIGHT).build()).active = page > 0;
+        addRenderableWidget(HomeLinkButton.builder(Component.literal(">"), ignored -> { page++; rebuild(); }).bounds(x + w - 48, bottom, 48, HomeLinkTheme.CONTROL_HEIGHT).build()).active = start + rows() < matches.size();
     }
     private void filter() {
         String term = normalized(query.strip());
@@ -63,9 +65,9 @@ public final class ItemPickerScreen extends TaskScreen {
     }
     @Override public void renderContent(GuiGraphics g, int mx, int my, float delta) {
         renderBackground(g, mx, my, delta);
-        g.drawString(font, title, left(), 33, TaskTheme.TEXT, false);
-        if (matches.isEmpty()) g.drawWordWrap(font, Component.translatable("screen.homelink_tasks.no_items"), left(), 87, wide(), TaskTheme.TEXT_MUTED);
-        g.drawString(font, Component.translatable("screen.homelink_tasks.item_results", matches.size(), page + 1, Math.max(1, (matches.size() + rows() - 1) / rows())), left(), height - 43, TaskTheme.TEXT_MUTED, false);
+        g.drawString(font, title, left(), 33, HomeLinkTheme.TEXT, false);
+        if (matches.isEmpty()) g.drawWordWrap(font, Component.translatable("screen.homelink_tasks.no_items"), left(), 87, wide(), HomeLinkTheme.MUTED);
+        g.drawString(font, Component.translatable("screen.homelink_tasks.item_results", matches.size(), page + 1, Math.max(1, (matches.size() + rows() - 1) / rows())), left(), height - 43, HomeLinkTheme.MUTED, false);
         super.renderContent(g, mx, my, delta);
     }
     @Override public boolean mouseScrolledContent(double x, double y, double horizontal, double vertical) {

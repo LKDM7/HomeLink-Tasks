@@ -4,7 +4,7 @@ Tableaux collaboratifs, carte mentale, vraies recettes, suivi de fabrication et 
 épinglé pour une base HomeLink.
 
 Minecraft **1.21.1**, NeoForge **21.1.252**, Java **21**.
-HomeCore **1.12.0** (API publique **1.8.0**) est obligatoire.
+HomeCore **1.14.0** (API publique **1.9.0**) est obligatoire.
 
 ## La règle du mod
 
@@ -34,9 +34,10 @@ Configurer `JAVA_HOME` vers un JDK 21, puis :
 Le JAR est écrit dans `build/libs/`.
 
 Le build utilise les sources adjacentes de `../HomeCore` quand elles sont présentes et à la
-bonne version ; sinon (ou avec `-PuseLocalDependencies=false`) il résout HomeCore 1.13.0
-publié sur GitHub Packages. Les contrats consommés, y compris `ProductionStart`, font partie
-de HomeCore 1.12.0 publié. Le Maven local n'est pas nécessaire.
+bonne version ; sinon (ou avec `-PuseLocalDependencies=false`) il demande HomeCore 1.14.0
+sur GitHub Packages. Cette résolution nécessite que l’artefact ait réellement été publié
+et soit accessible. Le build composite ne publie rien et ne télécharge pas de mise à jour
+des sources HomeCore. Le Maven local n'est pas nécessaire.
 
 ```powershell
 ./gradlew.bat test              # tests unitaires
@@ -239,8 +240,8 @@ Il reste une estimation, sans réservation de stock.
 
 | Mod | Version | Nécessité |
 |---|---|---|
-| HomeCore | 1.13.0 (API 1.8.0) | obligatoire |
-| HomeLink Storage | 1.3.0 (avec HomeLink Energy 0.5.0) | facultatif — sans lui, le calcul porte sur l'inventaire seulement |
+| HomeCore | 1.14.0 (API 1.9.0) | obligatoire |
+| HomeLink Storage | 1.4.0 (avec HomeLink Energy 0.5.0) | facultatif — sans lui, le calcul porte sur l'inventaire seulement |
 | JEI 19+ / REI 16+ | — | facultatif : page d'information de l'écran ; recettes, suivi et couleurs fonctionnent sans eux |
 
 HomeCore 1.12.0 ajoute trois contrats publics neutres que ce mod consomme et ne
@@ -248,7 +249,53 @@ réimplémente pas : lecture de stock autorisée, description publique des recet
 de production. Ils sont décrits dans le README de HomeCore et dans
 [docs/adapters.md](docs/adapters.md).
 
-## Documentation
+## Interface commune HomeLink
+
+Le chrome, les panneaux, les boutons, les champs et les espacements viennent de
+`fr.lkdm.homecore.api.client.ui`. Tasks utilise directement `HomeLinkTheme`,
+`HomeLinkUi`, `HomeLinkButton` et `HomeLinkScreenLayout` ; Dashboard n’est pas
+nécessaire pour afficher les écrans. `TaskTheme` et `TaskButton` sont supprimés.
+`TaskItemButton` conserve seulement son icône et son texte sur le bouton partagé.
+`TaskAvailabilityStyle` garde les couleurs métier inventaire/Storage/manque/inconnu,
+leurs symboles et leurs traductions. Kanban, drag/drop, HUD et affichages physiques
+conservent leur logique.
+
+Les nouveaux écrans utilisent le kit client de HomeCore sans recopier de palette.
+Les widgets vanilla gardent leur narration et leur navigation clavier. Pour la
+revue automatisée des 23 vues à deux tailles et aux GUI scales 2 et 3, avec un vrai client :
+
+```powershell
+./gradlew.bat runInGame -PguiReview -PguiReviewLanguage=fr_fr
+./gradlew.bat runInGame -PguiReview -PguiReviewLanguage=en_us
+```
+
+Chaque parcours vérifie les bornes, les chevauchements et le cycle de tabulation
+des contrôles actifs et visibles. Les captures sont dans
+`build/validation/in-game/screenshots` ; sauvegarder les preuves d’une langue avant
+la suivante. Les deux parcours ont réussi le 3 octobre 2026 ; les preuves et
+leur portée sont décrites dans [validation.md](docs/validation.md). Voir le
+[guide UI HomeCore](https://github.com/LKDM7/HomeCore/blob/main/docs/UI_STYLE.md).
+
+## English: shared interface and dependencies
+
+HomeLink Tasks 0.2.0 requires **HomeCore 1.14.0 / public API 1.9.0** on both
+client and server. Its public client UI kit supplies the palette, window chrome,
+panels, controls and adaptive layout. Tasks does not require Dashboard to display
+its screens. Removed `TaskTheme` and `TaskButton` are replaced by direct kit calls;
+`TaskItemButton` adds item content to `HomeLinkButton`, while
+`TaskAvailabilityStyle` retains semantic stock colors, symbols and labels.
+Board logic, drag/drop, mind map, HUD and physical display behavior remain local.
+
+Future screens should use `fr.lkdm.homecore.api.client.ui` from client code only.
+Keep an explicit HomeCore dependency and runtime range `[1.14.0,2.0.0)`.
+The adjacent composite builds local sources and publishes nothing. Maven requires
+the exact requested artifact to have actually been published and be accessible.
+Use the two `runInGame` commands above for the French and English GUI review;
+they verify bounds, overlaps and the full active/visible widget tab cycle.
+Both language runs passed on October 3, 2026; see [validation.md](docs/validation.md)
+for the recorded evidence and review scope.
+
+## Guides
 
 - [Guide utilisateur](docs/user-guide.md)
 - [Architecture](docs/architecture.md)
