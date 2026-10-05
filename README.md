@@ -302,3 +302,7 @@ for the recorded evidence and review scope.
 - [Contrat des adaptateurs](docs/adapters.md)
 - [Format de sauvegarde et migrations](docs/save-format.md)
 - [Rapport de validation](docs/validation.md)
+
+## Licence
+
+Tous droits réservés © 2026 LKDM. Le code source est visible à titre de référence uniquement ; toute copie, modification ou redistribution nécessite une autorisation écrite. Voir [LICENSE](LICENSE).

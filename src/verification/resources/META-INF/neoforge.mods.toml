@@ -1,6 +1,6 @@
 modLoader="javafml"
 loaderVersion="[4,)"
-license="Apache-2.0"
+license = "All Rights Reserved"
 
 [[mods]]
 modId="homelink_tasks_validation"

@@ -150,4 +150,4 @@ Installez le mod sur le **client et le serveur**.
 
 ---
 
-*Apache 2.0 License · Licence Apache 2.0 — by / par LKDM*
+*All Rights Reserved · Tous droits réservés — by / par LKDM*
